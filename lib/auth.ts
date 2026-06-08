@@ -1,0 +1,63 @@
+import "server-only";
+import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
+import { eq, or } from "drizzle-orm";
+import { z } from "zod";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { authConfig } from "@/auth.config";
+
+const credentialsSchema = z.object({
+  identifier: z.string().min(1),
+  password: z.string().min(1),
+});
+
+export const {
+  handlers,
+  signIn,
+  signOut,
+  auth,
+} = NextAuth({
+  ...authConfig,
+  providers: [
+    Credentials({
+      credentials: {
+        identifier: { label: "SĐT hoặc email" },
+        password: { label: "Mật khẩu", type: "password" },
+      },
+      async authorize(credentials) {
+        const parsed = credentialsSchema.safeParse(credentials);
+        if (!parsed.success) return null;
+
+        const { identifier, password } = parsed.data;
+
+        const user = await db.query.users.findFirst({
+          where: or(eq(users.phone, identifier), eq(users.email, identifier)),
+          columns: {
+            id: true,
+            fullName: true,
+            email: true,
+            phone: true,
+            role: true,
+            passwordHash: true,
+          },
+        });
+
+        if (!user) return null;
+
+        const ok = await bcrypt.compare(password, user.passwordHash);
+        if (!ok) return null;
+
+        return {
+          id: user.id,
+          name: user.fullName,
+          email: user.email ?? undefined,
+          role: user.role,
+        };
+      },
+    }),
+  ],
+});
+
+export const { GET, POST } = handlers;
