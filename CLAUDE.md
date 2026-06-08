@@ -34,7 +34,7 @@ Use these for any non-trivial work:
 - [x] Zod validations + VN label maps (`lib/validations/`, `lib/labels.ts`)
 - [x] Seed data: 2 users, 9 services, 21 parts (4-5 mỗi loại), 3 sample appointments — idempotent via onConflictDoNothing
 - [x] Layout chung (navbar sticky + DropdownMenu auth-aware, footer 3 cột, floating Zalo+hotline mobile-only, app/(public)/layout.tsx)
-- [ ] 6 trang MVP (home, services, pricing, parts, contact, book)
+- [ ] 6 trang MVP: 1/6 (home ✓; còn services, pricing, parts, contact, track)
 - [ ] Auth pages (login, register) + API route handlers
 - [ ] Booking flow (form → POST → appointment code)
 - [ ] My appointments + tracking
