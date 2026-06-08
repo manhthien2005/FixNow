@@ -28,7 +28,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env
 .env*.local
 .env.development
@@ -41,9 +41,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# drizzle
-/drizzle/meta
+# NOTE: drizzle/ (migrations + meta) is committed — required for migration state tracking
 
 # IDE
 .vscode/
 .idea/
+
+# scratch
+_check-*.ts
+_check-*.mjs

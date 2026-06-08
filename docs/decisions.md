@@ -73,3 +73,14 @@ Format:
 - **Trade-off / rủi ro**: ...
 - **Reversible?**: yes/no — nếu no thì giải thích.
 ```
+
+## 2026-06-08 — Database host: Supabase
+
+### Stack
+- **DB host**: Supabase Postgres (project `wjgdwflbofwtxzwvlsnz`, region Tokyo `ap-northeast-1`).
+- **Connection mode**: Session Pooler (port 5432, host `aws-X-<region>.pooler.supabase.com`).
+- **Why pooler not direct**: Supabase Direct Connection only exposes IPv6 on free tier — Vietnamese consumer ISPs typically only have IPv4 → `ECONNABORTED`. Session Pooler is IPv4 + supports prepared statements (Drizzle requires them).
+- **Why Session not Transaction pooler**: Transaction Pooler (port 6543) disables prepared statements → Drizzle queries fail.
+- **SSL**: must use `?sslmode=require&uselibpqcompat=true`. Recent `pg` versions treat plain `sslmode=require` as `verify-full` which rejects Supabase pooler certs.
+- **Trade-off / risk**: free tier pauses project after 7 days inactive (click "Restore" in dashboard to wake). 500MB DB / 2GB egress monthly — plenty for demo.
+- **Reversible?**: yes — schema is portable, change `DATABASE_URL` to migrate to Neon / local Postgres without code change.

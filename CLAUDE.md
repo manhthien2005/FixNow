@@ -27,16 +27,25 @@ Use these for any non-trivial work:
 - [x] SPEC.md có
 - [x] Tooling: skills + agents + commands + AGENTS.md
 - [x] Stack chốt: Next.js + Postgres + Drizzle + NextAuth + shadcn
-- [ ] `package.json` + Next.js scaffold (chạy skill `fixnow-bootstrap`)
-- [ ] Drizzle schema + first migration
-- [ ] Seed data (services, parts)
+- [x] `package.json` + Next.js scaffold (Next 15 + React 19 + TS strict + Tailwind v3)
+- [x] Drizzle schema + first migration (`drizzle/0000_great_gertrude_yorkes.sql` applied to Supabase Session Pooler)
+- [x] shadcn/ui base components (13 primitives in `components/ui/`)
+- [x] NextAuth v5 foundation (split config: `auth.config.ts` Edge-safe + `lib/auth.ts` bcrypt+DB authorize)
+- [x] Zod validations + VN label maps (`lib/validations/`, `lib/labels.ts`)
+- [ ] Seed data (services, parts, admin user)
 - [ ] Layout chung (navbar, footer, floating contact)
-- [ ] 6 trang MVP
-- [ ] Auth (register, login, middleware)
-- [ ] Booking flow (guest + auth)
+- [ ] 6 trang MVP (home, services, pricing, parts, contact, book)
+- [ ] Auth pages (login, register) + API route handlers
+- [ ] Booking flow (form → POST → appointment code)
 - [ ] My appointments + tracking
 - [ ] Admin panel
 - [ ] Responsive QA pass
+
+**DB connection notes (Supabase):**
+- Direct connection (port 5432, `db.<ref>.supabase.co`) → IPv6-only, won't work on most Vietnamese dev networks.
+- ✅ Use **Session Pooler** (port 5432, `aws-X-<region>.pooler.supabase.com`) — IPv4 + supports prepared statements (Drizzle needs this).
+- ❌ Don't use Transaction Pooler (port 6543) — breaks Drizzle prepared statements.
+- URL must include `?sslmode=require&uselibpqcompat=true` — newer `pg` treats `sslmode=require` as `verify-full` by default, which rejects Supabase pooler certs.
 
 Khi user hỏi "đang làm tới đâu" → check section này và `git log`.
 
