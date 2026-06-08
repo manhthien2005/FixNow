@@ -20,6 +20,8 @@ import { SERVICE_GROUPS } from "@/lib/labels";
 import { GridBackdrop } from "@/components/marketing/grid-backdrop";
 import { SectionHeading } from "@/components/marketing/section-heading";
 import { ScrollReveal } from "@/components/features/home/scroll-reveal";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 export const metadata: Metadata = {
   title: "Dịch vụ",
@@ -122,13 +124,46 @@ const COMMITMENTS = [
   { icon: MapPin, title: "Tận nơi 3–5km", desc: "Kỹ thuật viên cơ động đến tận nhà / VP.", accent: "secondary" as Accent },
 ] as const;
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
+  const isVi = locale === "vi";
+  const localizedServices = SERVICES.map((service, index) => ({
+    ...service,
+    title: dictionary.labels.serviceGroups[index] ?? service.title,
+    description: isVi
+      ? service.description
+      : [
+          "An on-site technician checks the device and diagnoses the real cause before quoting.",
+          "Windows setup, drivers, malware cleanup, freezes, slow performance, and blue-screen issues while keeping your data intact.",
+          "Cleaning, thermal paste, drive, charger, and battery checks to improve temperature and stability.",
+          "RAM, SSD, and HDD upgrades with parts advice that fits your needs and budget.",
+          "Printer, Wi-Fi, and small office network setup for homes, shops, and small teams.",
+          "Remote software support through TeamViewer / AnyDesk when an on-site visit is not required.",
+        ][index] ?? service.description,
+  }));
+  const localizedCommitments = COMMITMENTS.map((item, index) => ({
+    ...item,
+    title: isVi
+      ? item.title
+      : ["Transparent pricing", "Clear warranty", "Fast same-day support", "On-site 3-5km"][index] ??
+        item.title,
+    desc: isVi
+      ? item.desc
+      : [
+          "You see the quote before repair, with no hidden fees.",
+          "Warranty commitment is stated by service item.",
+          "Response during working hours, most cases handled the same day.",
+          "Mobile technicians come to your home or office.",
+        ][index] ?? item.desc,
+  }));
+
   return (
     <>
       <ScrollReveal />
 
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-white/5 bg-background py-20 md:py-28">
+      <section className="relative overflow-hidden border-b border-border bg-background py-20 md:py-28">
         <GridBackdrop />
         <div aria-hidden className="absolute right-[12%] top-0 h-72 w-72 rounded-full bg-secondary/10 blur-[140px]" />
         <div aria-hidden className="absolute -bottom-10 left-[8%] h-72 w-96 rounded-full bg-primary/10 blur-[150px]" />
@@ -138,11 +173,15 @@ export default function ServicesPage() {
               &gt; PROTOCOLS
             </p>
             <h1 className="text-display-lg-mobile text-on-surface md:text-display-lg">
-              Hệ sinh thái <span className="text-gradient">dịch vụ</span>
+              {isVi ? "Hệ sinh thái" : "Service"}{" "}
+              <span className="text-gradient">
+                {isVi ? "dịch vụ" : "ecosystem"}
+              </span>
             </h1>
             <p className="mt-6 max-w-xl text-body-lg text-on-surface-variant">
-              6 nhóm dịch vụ chuyên sâu, phục vụ từ khách cá nhân tới văn phòng
-              nhỏ — chẩn đoán minh bạch, xử lý triệt để, bảo hành rõ ràng.
+              {isVi
+                ? "6 nhóm dịch vụ chuyên sâu, phục vụ từ khách cá nhân tới văn phòng nhỏ - chẩn đoán minh bạch, xử lý triệt để, bảo hành rõ ràng."
+                : "Six focused service groups for individuals and small offices, with clear diagnostics, practical repair, and transparent warranty notes."}
             </p>
           </div>
         </div>
@@ -152,7 +191,7 @@ export default function ServicesPage() {
       <section className="relative overflow-hidden bg-background py-20 md:py-24">
         <div className="relative mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {SERVICES.map(({ title, description, icon: Icon, accent, image }, i) => {
+            {localizedServices.map(({ title, description, icon: Icon, accent, image }, i) => {
               const a = ACCENT[accent];
               return (
                 <article
@@ -169,10 +208,10 @@ export default function ServicesPage() {
                       className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-surface-container/95 via-surface-container/30 to-transparent" />
-                    <span className="absolute right-4 top-4 font-mono text-label-sm text-white/60">
+                    <span className="absolute right-4 top-4 font-mono text-label-sm text-on-surface-variant">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <div className={`absolute -bottom-6 left-6 flex size-14 items-center justify-center rounded-xl border border-white/10 bg-surface-container-lowest/80 backdrop-blur ${a.tile}`}>
+                    <div className={`absolute -bottom-6 left-6 flex size-14 items-center justify-center rounded-xl border border-border bg-surface-container-lowest/80 backdrop-blur ${a.tile}`}>
                       <Icon className="size-7" aria-hidden="true" />
                     </div>
                   </div>
@@ -189,7 +228,7 @@ export default function ServicesPage() {
                       href="/booking"
                       className={`mt-auto inline-flex items-center gap-2 font-mono text-label-md uppercase tracking-wider ${a.text}`}
                     >
-                      Đặt dịch vụ
+                      {isVi ? "Đặt dịch vụ" : "Book service"}
                       <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                     </Link>
                   </div>
@@ -201,15 +240,19 @@ export default function ServicesPage() {
       </section>
 
       {/* Commitments */}
-      <section className="relative overflow-hidden border-y border-white/5 bg-surface-container-lowest py-16 md:py-20">
+      <section className="relative overflow-hidden border-y border-border bg-surface-container-lowest py-16 md:py-20">
         <div className="relative mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
           <SectionHeading
             eyebrow="WHY_FIXNOW"
-            title="Cam kết của FixNow"
-            subtitle="Bốn điều khách hàng luôn nhận được trong mọi lần phục vụ."
+            title={isVi ? "Cam kết của FixNow" : "FixNow commitments"}
+            subtitle={
+              isVi
+                ? "Bốn điều khách hàng luôn nhận được trong mọi lần phục vụ."
+                : "Four things customers can expect on every service request."
+            }
           />
           <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
-            {COMMITMENTS.map(({ icon: Icon, title, desc, accent }, i) => {
+            {localizedCommitments.map(({ icon: Icon, title, desc, accent }, i) => {
               const a = ACCENT[accent];
               return (
                 <div
@@ -219,7 +262,7 @@ export default function ServicesPage() {
                   <span className="mb-4 block font-mono text-label-sm text-on-surface-variant/40">
                     0{i + 1}
                   </span>
-                  <span className={`mb-4 flex size-12 items-center justify-center rounded-xl border border-white/10 bg-surface-container-high/50 ${a.tile}`}>
+                  <span className={`mb-4 flex size-12 items-center justify-center rounded-xl border border-border bg-surface-container-high/50 ${a.tile}`}>
                     <Icon className="size-6" aria-hidden="true" />
                   </span>
                   <p className={`text-body-lg font-semibold text-on-surface transition-colors ${a.hover}`}>
@@ -244,24 +287,25 @@ export default function ServicesPage() {
             <div aria-hidden className="absolute right-0 top-0 -z-10 h-32 w-32 rounded-bl-full bg-secondary/10" />
             <div aria-hidden className="absolute bottom-0 left-0 -z-10 h-32 w-32 rounded-tr-full bg-primary/10" />
             <h2 className="text-headline-sm text-on-surface md:text-headline-md">
-              Máy của bạn đang gặp vấn đề?
+              {isVi ? "Máy của bạn đang gặp vấn đề?" : "Is your device having issues?"}
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-body-md text-on-surface-variant">
-              Đặt lịch chỉ trong 2 phút, kỹ thuật viên FixNow sẽ liên hệ xác nhận
-              và đến tận nơi.
+              {isVi
+                ? "Đặt lịch chỉ trong 2 phút, kỹ thuật viên FixNow sẽ liên hệ xác nhận và đến tận nơi."
+                : "Book in about two minutes. A FixNow technician will contact you to confirm and come to you."}
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
                 href="/booking"
                 className="btn-gradient glow-cta inline-flex items-center gap-2 rounded-xl px-9 py-4 font-mono text-label-md font-bold uppercase tracking-wider text-white"
               >
-                Đặt lịch ngay <ArrowRight className="size-5" />
+                {dictionary.home.primaryCta} <ArrowRight className="size-5" />
               </Link>
               <Link
                 href="/pricing"
                 className="font-mono text-label-md uppercase tracking-wider text-on-surface-variant transition-colors hover:text-secondary"
               >
-                Xem bảng giá
+                {isVi ? "Xem bảng giá" : "View pricing"}
               </Link>
             </div>
           </div>

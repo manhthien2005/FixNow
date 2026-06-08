@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { authConfig } from "@/auth.config";
+import { normalizePhoneValue } from "@/lib/input-normalizers";
 
 const credentialsSchema = z.object({
   identifier: z.string().min(1),
@@ -31,9 +32,15 @@ export const {
         if (!parsed.success) return null;
 
         const { identifier, password } = parsed.data;
+        const normalizedIdentifier = identifier.includes("@")
+          ? identifier.trim().toLowerCase()
+          : normalizePhoneValue(identifier);
 
         const user = await db.query.users.findFirst({
-          where: or(eq(users.phone, identifier), eq(users.email, identifier)),
+          where: or(
+            eq(users.phone, normalizedIdentifier),
+            eq(users.email, normalizedIdentifier),
+          ),
           columns: {
             id: true,
             fullName: true,

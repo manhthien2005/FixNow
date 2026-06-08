@@ -28,6 +28,12 @@ import { ImageUpload } from "@/components/features/admin/image-upload";
 import { PART_TYPE_LABEL } from "@/lib/labels";
 import { resolvePartImage } from "@/lib/images";
 import { partTypeEnum, type Part, type PartType } from "@/db/schema";
+import {
+  INPUT_LIMITS,
+  limitText,
+  normalizeSpaces,
+} from "@/lib/input-normalizers";
+import { useI18n } from "@/components/i18n/language-provider";
 
 const TYPES = partTypeEnum.enumValues;
 
@@ -65,6 +71,8 @@ function toForm(part: Part): FormState {
 
 export function PartsManager({ initialParts }: { initialParts: Part[] }) {
   const router = useRouter();
+  const { dictionary, locale } = useI18n();
+  const isVi = locale === "vi";
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Part | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -89,17 +97,21 @@ export function PartsManager({ initialParts }: { initialParts: Part[] }) {
   async function handleSave() {
     setError(null);
     if (form.name.trim().length < 2 || form.price.trim().length < 1) {
-      setError("Vui lòng nhập tên (≥2 ký tự) và giá.");
+      setError(
+        isVi
+          ? "Vui lòng nhập tên (>=2 ký tự) và giá."
+          : "Please enter a name (at least 2 characters) and price.",
+      );
       return;
     }
     setSaving(true);
     try {
       const payload = {
         type: form.type,
-        name: form.name.trim(),
-        price: form.price.trim(),
-        warranty: form.warranty.trim() || null,
-        note: form.note.trim() || null,
+        name: normalizeSpaces(form.name),
+        price: normalizeSpaces(form.price),
+        warranty: form.warranty.trim() ? normalizeSpaces(form.warranty) : null,
+        note: form.note.trim() ? normalizeSpaces(form.note) : null,
         imagePath: form.imagePath,
         isActive: form.isActive,
       };
@@ -113,20 +125,31 @@ export function PartsManager({ initialParts }: { initialParts: Part[] }) {
       );
       const data = (await res.json()) as { message?: string };
       if (!res.ok) {
-        setError(data.message ?? "Lưu thất bại. Kiểm tra lại dữ liệu.");
+        setError(
+          data.message ??
+            (isVi ? "Lưu thất bại. Kiểm tra lại dữ liệu." : "Save failed. Check the data again."),
+        );
         return;
       }
       setOpen(false);
       router.refresh();
     } catch {
-      setError("Lỗi mạng khi lưu.");
+      setError(isVi ? "Lỗi mạng khi lưu." : "Network error while saving.");
     } finally {
       setSaving(false);
     }
   }
 
   async function handleDelete(part: Part) {
-    if (!confirm(`Xóa linh kiện "${part.name}"?`)) return;
+    if (
+      !confirm(
+        isVi
+          ? `Xóa linh kiện "${part.name}"?`
+          : `Delete part "${part.name}"?`,
+      )
+    ) {
+      return;
+    }
     setDeletingId(part.id);
     try {
       const res = await fetch(`/api/admin/parts/${part.id}`, {
@@ -142,11 +165,11 @@ export function PartsManager({ initialParts }: { initialParts: Part[] }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">
-          {initialParts.length} linh kiện
+          {initialParts.length} {isVi ? "linh kiện" : "parts"}
         </p>
         <Button onClick={openCreate}>
           <Plus className="size-4" />
-          Thêm linh kiện
+          {isVi ? "Thêm linh kiện" : "Add part"}
         </Button>
       </div>
 
@@ -169,11 +192,12 @@ export function PartsManager({ initialParts }: { initialParts: Part[] }) {
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
                 <span className="rounded bg-muted px-2 py-0.5 text-xs font-medium">
-                  {PART_TYPE_LABEL[part.type]}
+                  {dictionary.labels.partType[part.type] ??
+                    PART_TYPE_LABEL[part.type]}
                 </span>
                 {!part.isActive ? (
                   <span className="rounded bg-destructive/10 px-2 py-0.5 text-xs text-destructive">
-                    Ẩn
+                    {isVi ? "Ẩn" : "Hidden"}
                   </span>
                 ) : null}
               </div>
@@ -212,10 +236,18 @@ export function PartsManager({ initialParts }: { initialParts: Part[] }) {
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {editing ? "Sửa linh kiện" : "Thêm linh kiện"}
+              {editing
+                ? isVi
+                  ? "Sửa linh kiện"
+                  : "Edit part"
+                : isVi
+                  ? "Thêm linh kiện"
+                  : "Add part"}
             </DialogTitle>
             <DialogDescription>
-              Thông tin hiển thị trên trang tra cứu linh kiện.
+              {isVi
+                ? "Thông tin hiển thị trên trang tra cứu linh kiện."
+                : "Information shown on the public parts catalog."}
             </DialogDescription>
           </DialogHeader>
 
@@ -229,7 +261,7 @@ export function PartsManager({ initialParts }: { initialParts: Part[] }) {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="part-type">Loại</Label>
+                <Label htmlFor="part-type">{isVi ? "Loại" : "Type"}</Label>
                 <Select
                   value={form.type}
                   onValueChange={(v) =>
@@ -242,47 +274,86 @@ export function PartsManager({ initialParts }: { initialParts: Part[] }) {
                   <SelectContent>
                     {TYPES.map((t) => (
                       <SelectItem key={t} value={t}>
-                        {PART_TYPE_LABEL[t]}
+                        {dictionary.labels.partType[t] ?? PART_TYPE_LABEL[t]}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="part-price">Giá</Label>
+                <Label htmlFor="part-price">{isVi ? "Giá" : "Price"}</Label>
                 <Input
                   id="part-price"
                   value={form.price}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, price: e.target.value }))
+                    setForm((f) => ({
+                      ...f,
+                      price: limitText(e.target.value, INPUT_LIMITS.price),
+                    }))
+                  }
+                  onBlur={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      price: normalizeSpaces(e.target.value),
+                    }))
                   }
                   placeholder="650.000đ"
+                  maxLength={INPUT_LIMITS.price}
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="part-name">Tên / thông số</Label>
+              <Label htmlFor="part-name">
+                {isVi ? "Tên / thông số" : "Name / specification"}
+              </Label>
               <Input
                 id="part-name"
                 value={form.name}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
+                  setForm((f) => ({
+                    ...f,
+                    name: limitText(e.target.value, INPUT_LIMITS.catalogName),
+                  }))
+                }
+                onBlur={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    name: normalizeSpaces(e.target.value),
+                  }))
                 }
                 placeholder="RAM Laptop DDR4 8GB 3200MHz"
+                maxLength={INPUT_LIMITS.catalogName}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="part-warranty">Bảo hành</Label>
+                <Label htmlFor="part-warranty">
+                  {isVi ? "Bảo hành" : "Warranty"}
+                </Label>
                 <Input
                   id="part-warranty"
                   value={form.warranty}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, warranty: e.target.value }))
+                    setForm((f) => ({
+                      ...f,
+                      warranty: limitText(
+                        e.target.value,
+                        INPUT_LIMITS.warranty,
+                      ),
+                    }))
                   }
-                  placeholder="36 tháng"
+                  onBlur={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      warranty: e.target.value.trim()
+                        ? normalizeSpaces(e.target.value)
+                        : "",
+                    }))
+                  }
+                  placeholder={isVi ? "36 tháng" : "36 months"}
+                  maxLength={INPUT_LIMITS.warranty}
                 />
               </div>
               <div className="flex items-end pb-2">
@@ -295,21 +366,33 @@ export function PartsManager({ initialParts }: { initialParts: Part[] }) {
                     }
                     className="size-4 rounded border-input"
                   />
-                  Hiển thị
+                  {isVi ? "Hiển thị" : "Visible"}
                 </label>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="part-note">Ghi chú</Label>
+              <Label htmlFor="part-note">{isVi ? "Ghi chú" : "Note"}</Label>
               <Textarea
                 id="part-note"
                 value={form.note}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, note: e.target.value }))
+                  setForm((f) => ({
+                    ...f,
+                    note: limitText(e.target.value, INPUT_LIMITS.note),
+                  }))
+                }
+                onBlur={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    note: e.target.value.trim()
+                      ? normalizeSpaces(e.target.value)
+                      : "",
+                  }))
                 }
                 rows={2}
                 placeholder="Crucial / Kingston"
+                maxLength={INPUT_LIMITS.note}
               />
             </div>
 
@@ -318,11 +401,17 @@ export function PartsManager({ initialParts }: { initialParts: Part[] }) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Hủy
+              {isVi ? "Hủy" : "Cancel"}
             </Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving ? <Loader2 className="size-4 animate-spin" /> : null}
-              {editing ? "Lưu thay đổi" : "Tạo mới"}
+              {editing
+                ? isVi
+                  ? "Lưu thay đổi"
+                  : "Save changes"
+                : isVi
+                  ? "Tạo mới"
+                  : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>

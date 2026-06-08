@@ -11,10 +11,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { DEVICE_TYPE_LABEL } from "@/lib/labels";
+import { getServiceGroupLabel } from "@/lib/labels";
 import { DEVICE_ICON, STATUS_STEPS, STATUS_UI } from "@/lib/appointment-ui";
-import { formatDateVi } from "@/lib/utils";
+import { formatDateByLocale } from "@/lib/utils";
 import type { AppointmentStatus, DeviceType } from "@/db/schema";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 export interface AppointmentDetailData {
   customerName: string;
@@ -42,7 +44,7 @@ function InfoTile({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-white/10 bg-surface-container/40 p-5 ${className ?? ""}`}
+      className={`rounded-2xl border border-border bg-surface-container/40 p-5 ${className ?? ""}`}
     >
       <div className="flex items-center gap-2 text-on-surface-variant">
         <Icon className="size-4 shrink-0 text-secondary" aria-hidden="true" />
@@ -56,7 +58,13 @@ function InfoTile({
 }
 
 /** Shared appointment presentation: status stepper + sectioned info tiles. */
-export function AppointmentDetail({ appt }: { appt: AppointmentDetailData }) {
+export async function AppointmentDetail({
+  appt,
+}: {
+  appt: AppointmentDetailData;
+}) {
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
   const DeviceIcon = DEVICE_ICON[appt.deviceType];
   const isCancelled = appt.status === "CANCELLED";
   const currentStep = STATUS_STEPS.indexOf(appt.status);
@@ -69,17 +77,19 @@ export function AppointmentDetail({ appt }: { appt: AppointmentDetailData }) {
           <CircleX className="size-6 shrink-0 text-destructive" aria-hidden="true" />
           <div>
             <p className="text-body-lg font-semibold text-on-surface">
-              Lịch hẹn đã bị huỷ
+              {dictionary.labels.appointmentStatus.CANCELLED}
             </p>
             <p className="text-body-md text-on-surface-variant">
-              FixNow sẽ không liên hệ lại theo lịch này.
+              {locale === "vi"
+                ? "FixNow sẽ không liên hệ lại theo lịch này."
+                : "FixNow will not contact you for this appointment."}
             </p>
           </div>
         </div>
       ) : (
         <div className="glass-panel rounded-2xl p-6 md:p-8">
           <p className="mb-6 font-mono text-label-sm uppercase tracking-widest text-secondary">
-            &gt; TIẾN TRÌNH
+            &gt; {locale === "vi" ? "TIẾN TRÌNH" : "PROGRESS"}
           </p>
           <ol className="flex items-center">
             {STATUS_STEPS.map((step, i) => {
@@ -97,7 +107,7 @@ export function AppointmentDetail({ appt }: { appt: AppointmentDetailData }) {
                       className={`flex size-11 items-center justify-center rounded-full border transition-colors ${
                         done
                           ? `${stepUi.border} ${stepUi.bg} ${stepUi.text}`
-                          : "border-white/10 bg-surface-container/40 text-on-surface-variant/40"
+                          : "border-border bg-surface-container/40 text-on-surface-variant/40"
                       }`}
                     >
                       <StepIcon className="size-5" aria-hidden="true" />
@@ -107,13 +117,13 @@ export function AppointmentDetail({ appt }: { appt: AppointmentDetailData }) {
                         done ? "text-on-surface" : "text-on-surface-variant/40"
                       }`}
                     >
-                      {stepUi.label}
+                      {dictionary.labels.appointmentStatus[step]}
                     </span>
                   </div>
                   {!isLast ? (
                     <span
                       className={`mx-2 -mt-6 h-0.5 flex-1 rounded-full ${
-                        i < currentStep ? stepUi.dot : "bg-white/10"
+                        i < currentStep ? stepUi.dot : "bg-surface-container-high"
                       }`}
                     />
                   ) : null}
@@ -126,10 +136,10 @@ export function AppointmentDetail({ appt }: { appt: AppointmentDetailData }) {
 
       {/* Contact + address */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <InfoTile icon={UserRound} label="Khách hàng">
+        <InfoTile icon={UserRound} label={dictionary.common.customer}>
           {appt.customerName}
         </InfoTile>
-        <InfoTile icon={Phone} label="Số điện thoại">
+        <InfoTile icon={Phone} label={dictionary.common.phone}>
           <a
             href={`tel:${appt.phone}`}
             className="font-mono transition-colors hover:text-secondary"
@@ -137,30 +147,38 @@ export function AppointmentDetail({ appt }: { appt: AppointmentDetailData }) {
             {appt.phone}
           </a>
         </InfoTile>
-        <InfoTile icon={MapPin} label="Địa chỉ sửa chữa" className="sm:col-span-2">
+        <InfoTile
+          icon={MapPin}
+          label={locale === "vi" ? "Địa chỉ sửa chữa" : "Repair address"}
+          className="sm:col-span-2"
+        >
           {appt.address}
         </InfoTile>
       </div>
 
       {/* Device + service + time */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <InfoTile icon={DeviceIcon} label="Loại thiết bị">
-          {DEVICE_TYPE_LABEL[appt.deviceType]}
+        <InfoTile icon={DeviceIcon} label={dictionary.booking.deviceType}>
+          {dictionary.labels.deviceType[appt.deviceType]}
         </InfoTile>
-        <InfoTile icon={Wrench} label="Nhóm dịch vụ">
-          {appt.serviceGroup}
+        <InfoTile icon={Wrench} label={dictionary.booking.serviceGroup}>
+          {getServiceGroupLabel(appt.serviceGroup, locale)}
         </InfoTile>
         <InfoTile
           icon={CalendarClock}
-          label="Thời gian mong muốn"
+          label={dictionary.booking.preferredTime}
           className="sm:col-span-2"
         >
-          {appt.preferredTime ? formatDateVi(appt.preferredTime) : "Linh hoạt"}
+          {appt.preferredTime
+            ? formatDateByLocale(appt.preferredTime, locale)
+            : locale === "vi"
+              ? "Linh hoạt"
+              : "Flexible"}
         </InfoTile>
       </div>
 
       {/* Issue */}
-      <InfoTile icon={FileText} label="Mô tả lỗi">
+      <InfoTile icon={FileText} label={dictionary.booking.issue}>
         <p className="whitespace-pre-wrap break-words text-body-md leading-relaxed text-on-surface-variant">
           {appt.issueDescription}
         </p>
@@ -168,16 +186,18 @@ export function AppointmentDetail({ appt }: { appt: AppointmentDetailData }) {
 
       {/* Meta */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="flex items-center gap-2 rounded-xl border border-white/5 bg-surface-container/30 px-4 py-3">
+        <div className="flex items-center gap-2 rounded-xl border border-border bg-surface-container/30 px-4 py-3">
           <CalendarDays className="size-4 shrink-0 text-on-surface-variant" aria-hidden="true" />
           <span className="font-mono text-label-sm text-on-surface-variant">
-            Ngày tạo: {formatDateVi(appt.createdAt)}
+            {locale === "vi" ? "Ngày tạo" : "Created"}:{" "}
+            {formatDateByLocale(appt.createdAt, locale)}
           </span>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-white/5 bg-surface-container/30 px-4 py-3">
+        <div className="flex items-center gap-2 rounded-xl border border-border bg-surface-container/30 px-4 py-3">
           <RefreshCw className="size-4 shrink-0 text-on-surface-variant" aria-hidden="true" />
           <span className="font-mono text-label-sm text-on-surface-variant">
-            Cập nhật: {formatDateVi(appt.updatedAt)}
+            {locale === "vi" ? "Cập nhật" : "Updated"}:{" "}
+            {formatDateByLocale(appt.updatedAt, locale)}
           </span>
         </div>
       </div>

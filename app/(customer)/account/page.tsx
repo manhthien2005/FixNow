@@ -7,10 +7,11 @@ import { ClipboardList, Mail, Phone, ShieldCheck } from "lucide-react";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { auth } from "@/lib/auth";
-import { ROLE_LABEL } from "@/lib/labels";
 import { GridBackdrop } from "@/components/marketing/grid-backdrop";
 import { ScrollReveal } from "@/components/features/home/scroll-reveal";
 import { AccountForms } from "@/components/features/account/account-forms";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 export const metadata: Metadata = {
   title: "Tài khoản",
@@ -18,6 +19,8 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountPage() {
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
   const session = await auth();
   if (!session?.user?.id) redirect("/login?callbackUrl=/account");
 
@@ -40,7 +43,7 @@ export default async function AccountPage() {
       <ScrollReveal />
 
       {/* Header / profile summary */}
-      <section className="relative overflow-hidden border-b border-white/5 bg-background py-14 md:py-20">
+      <section className="relative overflow-hidden border-b border-border bg-background py-14 md:py-20">
         <GridBackdrop />
         <div aria-hidden className="absolute right-[12%] top-0 h-64 w-64 rounded-full bg-secondary/10 blur-[130px]" />
         <div className="relative mx-auto max-w-5xl px-margin-mobile md:px-margin-desktop">
@@ -48,7 +51,7 @@ export default async function AccountPage() {
             &gt; MY_ACCOUNT
           </p>
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-            <span className="flex size-20 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-surface-container-high/50 text-2xl font-bold text-secondary">
+            <span className="flex size-20 shrink-0 items-center justify-center rounded-2xl border border-border bg-surface-container-high/50 text-2xl font-bold text-secondary">
               {initials || "FN"}
             </span>
             <div>
@@ -68,16 +71,16 @@ export default async function AccountPage() {
                 ) : null}
                 <span className="inline-flex items-center gap-1.5">
                   <ShieldCheck className="size-4 text-secondary" aria-hidden="true" />
-                  {ROLE_LABEL[user.role]}
+                  {dictionary.labels.role[user.role]}
                 </span>
               </div>
             </div>
             <Link
               href="/my-appointments"
-              className="glass-panel inline-flex w-max items-center gap-2 rounded-xl px-6 py-3 font-mono text-label-md font-bold uppercase tracking-wider text-on-surface transition-colors hover:bg-white/10 sm:ml-auto"
+              className="glass-panel inline-flex w-max items-center gap-2 rounded-xl px-6 py-3 font-mono text-label-md font-bold uppercase tracking-wider text-on-surface transition-colors hover:bg-surface-container-high sm:ml-auto"
             >
               <ClipboardList className="size-5" />
-              Lịch hẹn của tôi
+              {dictionary.common.myAppointments}
             </Link>
           </div>
         </div>

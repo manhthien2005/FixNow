@@ -13,9 +13,10 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { PART_TYPE_LABEL } from "@/lib/labels";
 import { resolvePartImage } from "@/lib/images";
+import { INPUT_LIMITS, limitText } from "@/lib/input-normalizers";
 import type { Part, PartType } from "@/db/schema";
+import { useI18n } from "@/components/i18n/language-provider";
 
 type FilterValue = "ALL" | PartType;
 type Accent = "secondary" | "primary" | "tertiary";
@@ -44,20 +45,12 @@ const PRICE_ACCENT: Record<Accent, string> = {
   tertiary: "text-tertiary",
 };
 
-const FILTERS: { value: FilterValue; label: string }[] = [
-  { value: "ALL", label: "Tất cả" },
-  { value: "RAM", label: PART_TYPE_LABEL.RAM },
-  { value: "SSD", label: PART_TYPE_LABEL.SSD },
-  { value: "HDD", label: PART_TYPE_LABEL.HDD },
-  { value: "BATTERY", label: PART_TYPE_LABEL.BATTERY },
-  { value: "ACCESSORY", label: PART_TYPE_LABEL.ACCESSORY },
-];
-
 interface PartsExplorerProps {
   parts: Part[];
 }
 
 export function PartsExplorer({ parts }: PartsExplorerProps) {
+  const { dictionary } = useI18n();
   const [query, setQuery] = useState("");
   const [selectedType, setSelectedType] = useState<FilterValue>("ALL");
 
@@ -78,13 +71,22 @@ export function PartsExplorer({ parts }: PartsExplorerProps) {
     return map;
   }, [parts]);
 
+  const filters: { value: FilterValue; label: string }[] = [
+    { value: "ALL", label: dictionary.lists.all },
+    { value: "RAM", label: dictionary.labels.partType.RAM },
+    { value: "SSD", label: dictionary.labels.partType.SSD },
+    { value: "HDD", label: dictionary.labels.partType.HDD },
+    { value: "BATTERY", label: dictionary.labels.partType.BATTERY },
+    { value: "ACCESSORY", label: dictionary.labels.partType.ACCESSORY },
+  ];
+
   return (
     <div className="space-y-8">
       {/* Toolbar */}
       <div className="fade-in-up space-y-5">
         <div className="relative md:max-w-md">
           <label htmlFor="parts-search" className="sr-only">
-            Tìm linh kiện
+            {dictionary.lists.searchParts}
           </label>
           <Search
             aria-hidden="true"
@@ -94,20 +96,23 @@ export function PartsExplorer({ parts }: PartsExplorerProps) {
             id="parts-search"
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Tìm theo tên (vd: RAM 8GB)"
+            onChange={(event) =>
+              setQuery(limitText(event.target.value, INPUT_LIMITS.search))
+            }
+            placeholder={dictionary.lists.searchPartsPlaceholder}
             inputMode="search"
-            className="h-12 w-full rounded-xl border border-white/10 bg-surface-container/50 pl-12 pr-4 text-base text-on-surface placeholder:text-on-surface-variant/60 focus:border-secondary focus:outline-none focus:ring-1 focus:ring-secondary"
+            maxLength={INPUT_LIMITS.search}
+            className="h-12 w-full rounded-xl border border-border bg-surface-container/50 pl-12 pr-4 text-base text-on-surface placeholder:text-on-surface-variant/60 focus:border-secondary focus:outline-none focus:ring-1 focus:ring-secondary"
           />
         </div>
 
         {/* Pill filters (horizontal scroll on mobile) */}
         <div
           role="tablist"
-          aria-label="Lọc theo loại linh kiện"
+          aria-label={dictionary.lists.partFilterAria}
           className="flex flex-wrap gap-2"
         >
-          {FILTERS.map((filter) => {
+          {filters.map((filter) => {
             const isActive = selectedType === filter.value;
             const count = countByType.get(filter.value) ?? 0;
             return (
@@ -121,14 +126,14 @@ export function PartsExplorer({ parts }: PartsExplorerProps) {
                   "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 font-mono text-label-sm uppercase tracking-wider transition-colors",
                   isActive
                     ? "border-transparent bg-secondary text-on-secondary"
-                    : "border-white/10 bg-surface-container/40 text-on-surface-variant hover:border-secondary/40 hover:text-on-surface",
+                    : "border-border bg-surface-container/40 text-on-surface-variant hover:border-secondary/40 hover:text-on-surface",
                 )}
               >
                 {filter.label}
                 <span
                   className={cn(
                     "rounded-full px-1.5 text-[11px]",
-                    isActive ? "bg-on-secondary/15" : "bg-white/5",
+                    isActive ? "bg-on-secondary/15" : "bg-surface-container-high",
                   )}
                 >
                   {count}
@@ -140,8 +145,10 @@ export function PartsExplorer({ parts }: PartsExplorerProps) {
 
         <p className="font-mono text-label-sm uppercase tracking-wider text-on-surface-variant/70">
           {filtered.length > 0
-            ? `${String(filtered.length).padStart(2, "0")} linh kiện`
-            : "Không có kết quả"}
+            ? `${String(filtered.length).padStart(2, "0")} ${
+                dictionary.lists.parts
+              }`
+            : dictionary.common.noResults}
         </p>
       </div>
 
@@ -150,7 +157,7 @@ export function PartsExplorer({ parts }: PartsExplorerProps) {
         <div className="glass-panel flex flex-col items-center justify-center gap-3 rounded-2xl p-12 text-center">
           <PackageSearch className="size-10 text-on-surface-variant" aria-hidden="true" />
           <p className="text-body-md text-on-surface-variant">
-            Không có linh kiện phù hợp với bộ lọc hiện tại.
+            {dictionary.lists.noParts}
           </p>
         </div>
       ) : (
@@ -161,22 +168,22 @@ export function PartsExplorer({ parts }: PartsExplorerProps) {
             return (
               <article
                 key={part.id}
-                className={`glass-panel fade-in-up stagger-${i % 4} group flex flex-col overflow-hidden rounded-2xl transition-colors hover:border-white/20`}
+                className={`glass-panel fade-in-up stagger-${i % 4} group flex flex-col overflow-hidden rounded-2xl transition-colors hover:border-outline`}
               >
                 {/* Image header */}
                 <div className="relative h-36 overflow-hidden">
                   <Image
                     src={resolvePartImage(part.imagePath, part.type)}
-                    alt={PART_TYPE_LABEL[part.type]}
+                    alt={dictionary.labels.partType[part.type]}
                     fill
                     sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw"
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/40 to-transparent" />
-                  <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-surface-container-lowest/80 px-3 py-1 font-mono text-label-sm uppercase tracking-wider text-on-surface backdrop-blur">
-                    {PART_TYPE_LABEL[part.type]}
+                  <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-container-lowest/80 px-3 py-1 font-mono text-label-sm uppercase tracking-wider text-on-surface backdrop-blur">
+                    {dictionary.labels.partType[part.type]}
                   </span>
-                  <span className={`absolute -bottom-5 right-4 flex size-11 items-center justify-center rounded-xl border border-white/10 bg-surface-container-lowest/80 backdrop-blur ${TILE[meta.accent]}`}>
+                  <span className={`absolute -bottom-5 right-4 flex size-11 items-center justify-center rounded-xl border border-border bg-surface-container-lowest/80 backdrop-blur ${TILE[meta.accent]}`}>
                     <Icon className="size-5" aria-hidden="true" />
                   </span>
                 </div>
@@ -189,7 +196,7 @@ export function PartsExplorer({ parts }: PartsExplorerProps) {
                   {part.warranty ? (
                     <p className="inline-flex items-center gap-1.5 text-body-md text-on-surface-variant">
                       <ShieldCheck className="size-4 shrink-0 text-secondary" aria-hidden="true" />
-                      Bảo hành: {part.warranty}
+                      {dictionary.lists.warranty}: {part.warranty}
                     </p>
                   ) : null}
                   {part.note ? (
@@ -197,7 +204,7 @@ export function PartsExplorer({ parts }: PartsExplorerProps) {
                       {part.note}
                     </p>
                   ) : null}
-                  <p className={`mt-auto border-t border-white/5 pt-4 text-headline-sm font-bold ${PRICE_ACCENT[meta.accent]}`}>
+                  <p className={`mt-auto border-t border-border pt-4 text-headline-sm font-bold ${PRICE_ACCENT[meta.accent]}`}>
                     {part.price}
                   </p>
                 </div>

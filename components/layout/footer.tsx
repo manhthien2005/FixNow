@@ -1,41 +1,38 @@
 import Link from "next/link";
-import { Mail, MapPin, MessageCircle, Phone, Wrench } from "lucide-react";
+import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { SITE } from "@/lib/site";
+import { BrandLogo } from "@/components/layout/brand-logo";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
-const FOOTER_LINKS = [
-  { href: "/", label: "Trang chủ" },
-  { href: "/services", label: "Dịch vụ" },
-  { href: "/pricing", label: "Bảng giá" },
-  { href: "/parts", label: "Linh kiện" },
-  { href: "/contact", label: "Liên hệ" },
-  { href: "/track", label: "Tra cứu" },
-] as const;
+export async function Footer() {
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
+  const serviceRadius =
+    locale === "vi" ? SITE.serviceRadius : "3-5km radius within central HCMC";
 
-export function Footer() {
   return (
-    <footer className="relative overflow-hidden border-t border-white/10 bg-surface-container-lowest py-12">
+    <footer className="relative overflow-hidden border-t border-border bg-surface-container-lowest py-12">
       <div className="relative z-10 mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
         <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-3">
           <div className="flex flex-col gap-4">
             <Link
               href="/"
-              className="group flex items-center gap-2 text-headline-sm font-bold text-on-surface"
+              className="flex items-center"
             >
-              <Wrench className="size-6 text-secondary transition-transform duration-500 group-hover:rotate-90" />
-              FixNow
+              <BrandLogo size="md" />
             </Link>
             <p className="max-w-xs text-body-md text-on-surface-variant">
-              Sửa chữa &amp; bảo trì laptop/PC tận nơi. Tiện lợi – Minh bạch –
-              Nhanh chóng – An toàn dữ liệu.
+              {dictionary.footer.description}
             </p>
           </div>
 
           <div>
             <h3 className="mb-6 font-mono text-label-md uppercase tracking-widest text-on-surface">
-              Liên kết nhanh
+              {dictionary.footer.quickLinks}
             </h3>
             <nav className="flex flex-col gap-3">
-              {FOOTER_LINKS.map((link) => (
+              {dictionary.nav.items.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -49,7 +46,7 @@ export function Footer() {
 
           <div>
             <h3 className="mb-6 font-mono text-label-md uppercase tracking-widest text-on-surface">
-              Liên hệ
+              {dictionary.footer.contact}
             </h3>
             <ul className="flex flex-col gap-3 text-body-md text-on-surface-variant">
               <li className="flex items-center gap-3">
@@ -58,7 +55,7 @@ export function Footer() {
                   href={SITE.hotline.href}
                   className="inline-flex min-h-11 items-center transition-colors hover:text-secondary"
                 >
-                  Hotline: {SITE.hotline.label}
+                  {dictionary.footer.hotline}: {SITE.hotline.label}
                 </a>
               </li>
               <li className="flex items-center gap-3">
@@ -69,7 +66,7 @@ export function Footer() {
                   rel="noreferrer"
                   className="inline-flex min-h-11 items-center transition-colors hover:text-secondary"
                 >
-                  Zalo: {SITE.zalo.label}
+                  {dictionary.footer.zalo}: {SITE.zalo.label}
                 </a>
               </li>
               <li className="flex items-center gap-3">
@@ -83,18 +80,20 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <MapPin className="size-4 shrink-0 text-secondary" />
-                <span>Khu vực phục vụ: {SITE.serviceRadius}</span>
+                <span>
+                  {dictionary.footer.serviceArea}: {serviceRadius}
+                </span>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-8 md:flex-row">
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-border pt-8 md:flex-row">
           <p className="font-mono text-label-sm text-on-surface-variant">
             © 2026 FixNow.
           </p>
           <p className="text-label-sm text-on-surface-variant">
-            Tiện lợi · Minh bạch · Nhanh chóng · An toàn dữ liệu
+            {dictionary.footer.promise}
           </p>
         </div>
       </div>

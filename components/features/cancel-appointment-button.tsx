@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useI18n } from "@/components/i18n/language-provider";
 
 interface CancelAppointmentButtonProps {
   code: string;
@@ -24,6 +25,7 @@ export function CancelAppointmentButton({
   code,
 }: CancelAppointmentButtonProps) {
   const router = useRouter();
+  const { locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
@@ -36,22 +38,36 @@ export function CancelAppointmentButton({
       );
 
       if (res.status === 200) {
-        toast.success("Đã huỷ lịch hẹn.");
+        toast.success(
+          locale === "vi" ? "Đã huỷ lịch hẹn." : "Appointment cancelled.",
+        );
         setOpen(false);
         router.refresh();
         return;
       }
 
       if (res.status === 409) {
-        toast.warning("Lịch hẹn không thể huỷ ở trạng thái hiện tại.");
+        toast.warning(
+          locale === "vi"
+            ? "Lịch hẹn không thể huỷ ở trạng thái hiện tại."
+            : "This appointment cannot be cancelled in its current status.",
+        );
         setOpen(false);
         router.refresh();
         return;
       }
 
-      toast.error("Không thể huỷ lịch hẹn. Vui lòng thử lại.");
+      toast.error(
+        locale === "vi"
+          ? "Không thể huỷ lịch hẹn. Vui lòng thử lại."
+          : "Could not cancel the appointment. Please try again.",
+      );
     } catch {
-      toast.error("Không thể huỷ lịch hẹn. Vui lòng thử lại.");
+      toast.error(
+        locale === "vi"
+          ? "Không thể huỷ lịch hẹn. Vui lòng thử lại."
+          : "Could not cancel the appointment. Please try again.",
+      );
     } finally {
       setIsPending(false);
     }
@@ -60,20 +76,27 @@ export function CancelAppointmentButton({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive">Huỷ lịch hẹn</Button>
+        <Button variant="destructive">
+          {locale === "vi" ? "Huỷ lịch hẹn" : "Cancel appointment"}
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Xác nhận huỷ lịch hẹn?</DialogTitle>
+          <DialogTitle>
+            {locale === "vi"
+              ? "Xác nhận huỷ lịch hẹn?"
+              : "Cancel this appointment?"}
+          </DialogTitle>
           <DialogDescription>
-            Hành động này không thể hoàn tác. FixNow sẽ không liên hệ lại theo
-            lịch này.
+            {locale === "vi"
+              ? "Hành động này không thể hoàn tác. FixNow sẽ không liên hệ lại theo lịch này."
+              : "This action cannot be undone. FixNow will not contact you for this appointment."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-2">
           <DialogClose asChild>
             <Button variant="outline" disabled={isPending}>
-              Đóng
+              {locale === "vi" ? "Đóng" : "Close"}
             </Button>
           </DialogClose>
           <Button
@@ -81,7 +104,13 @@ export function CancelAppointmentButton({
             onClick={onConfirm}
             disabled={isPending}
           >
-            {isPending ? "Đang huỷ..." : "Xác nhận huỷ"}
+            {isPending
+              ? locale === "vi"
+                ? "Đang huỷ..."
+                : "Cancelling..."
+              : locale === "vi"
+                ? "Xác nhận huỷ"
+                : "Confirm cancellation"}
           </Button>
         </DialogFooter>
       </DialogContent>

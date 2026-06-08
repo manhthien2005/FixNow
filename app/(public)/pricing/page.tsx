@@ -19,6 +19,7 @@ import { db } from "@/db";
 import { servicePrices, type ServicePrice } from "@/db/schema";
 import { GridBackdrop } from "@/components/marketing/grid-backdrop";
 import { ScrollReveal } from "@/components/features/home/scroll-reveal";
+import { getLocale } from "@/lib/i18n-server";
 
 export const metadata: Metadata = {
   title: "Bảng giá",
@@ -119,16 +120,27 @@ function groupServices(rows: ServicePrice[]) {
 }
 
 export default async function PricingPage() {
+  const locale = await getLocale();
+  const isVi = locale === "vi";
   const services = await getServicePrices();
 
   const groups = groupServices(services);
+  const categoryLabels: Record<string, string> = isVi
+    ? {}
+    : {
+        inspect: "Inspection & cleaning",
+        software: "Software & data",
+        hardware: "Hardware & upgrades",
+        office: "Office & network",
+        other: "Other services",
+      };
 
   return (
     <>
       <ScrollReveal />
 
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-white/5 bg-background py-20 md:py-28">
+      <section className="relative overflow-hidden border-b border-border bg-background py-20 md:py-28">
         <GridBackdrop />
         <div aria-hidden className="absolute right-[12%] top-0 h-72 w-72 rounded-full bg-primary/10 blur-[140px]" />
         <div aria-hidden className="absolute -bottom-10 left-[8%] h-72 w-96 rounded-full bg-secondary/10 blur-[150px]" />
@@ -138,11 +150,15 @@ export default async function PricingPage() {
               &gt; PRICE_BOARD
             </p>
             <h1 className="text-display-lg-mobile text-on-surface md:text-display-lg">
-              Bảng giá <span className="text-gradient">minh bạch</span>
+              {isVi ? "Bảng giá" : "Transparent"}{" "}
+              <span className="text-gradient">
+                {isVi ? "minh bạch" : "pricing"}
+              </span>
             </h1>
             <p className="mt-6 max-w-xl text-body-lg text-on-surface-variant">
-              Giá tham khảo theo từng nhóm dịch vụ. Kỹ thuật viên luôn kiểm tra
-              máy và báo giá chính xác trước khi sửa.
+              {isVi
+                ? "Giá tham khảo theo từng nhóm dịch vụ. Kỹ thuật viên luôn kiểm tra máy và báo giá chính xác trước khi sửa."
+                : "Reference prices by service group. Technicians always inspect the device and confirm the exact quote before repair."}
             </p>
           </div>
 
@@ -150,9 +166,11 @@ export default async function PricingPage() {
           <div className="fade-in-up stagger-1 mt-8 flex max-w-3xl items-start gap-3 rounded-2xl border border-secondary/20 bg-secondary/5 p-4 md:p-5">
             <Info className="mt-0.5 size-5 shrink-0 text-secondary" aria-hidden="true" />
             <p className="text-body-md text-on-surface-variant">
-              Đây là giá tham khảo. Chi phí linh kiện thay thế tính riêng theo{" "}
+              {isVi
+                ? "Đây là giá tham khảo. Chi phí linh kiện thay thế tính riêng theo"
+                : "These are reference prices. Replacement parts are priced separately in the"}{" "}
               <Link href="/parts" className="text-secondary hover:underline">
-                bảng giá linh kiện
+                {isVi ? "bảng giá linh kiện" : "parts catalog"}
               </Link>
               .
             </p>
@@ -168,15 +186,16 @@ export default async function PricingPage() {
             return (
               <div key={group.cat.key} className="fade-in-up">
                 <div className="mb-6 flex items-center gap-4">
-                  <span className={`flex size-12 items-center justify-center rounded-xl border border-white/10 bg-surface-container-high/50 ${TILE[group.cat.accent]}`}>
+                  <span className={`flex size-12 items-center justify-center rounded-xl border border-border bg-surface-container-high/50 ${TILE[group.cat.accent]}`}>
                     <Icon className="size-6" aria-hidden="true" />
                   </span>
                   <div>
                     <h2 className="text-headline-sm text-on-surface">
-                      {group.cat.label}
+                      {categoryLabels[group.cat.key] ?? group.cat.label}
                     </h2>
                     <p className="font-mono text-label-sm uppercase tracking-wider text-on-surface-variant/60">
-                      {String(group.items.length).padStart(2, "0")} dịch vụ
+                      {String(group.items.length).padStart(2, "0")}{" "}
+                      {isVi ? "dịch vụ" : "services"}
                     </p>
                   </div>
                 </div>
@@ -187,19 +206,19 @@ export default async function PricingPage() {
                     return (
                       <article
                         key={service.id}
-                        className={`glass-panel fade-in-up stagger-${i % 4} group flex h-full flex-col overflow-hidden rounded-2xl transition-colors hover:border-white/20`}
+                        className={`glass-panel fade-in-up stagger-${i % 4} group flex h-full flex-col overflow-hidden rounded-2xl transition-colors hover:border-outline`}
                       >
                         {/* Thumbnail banner */}
                         <div className="relative h-28 overflow-hidden">
                           <Image
                             src={resolveServiceImage(service.imagePath, group.cat.image)}
-                            alt={group.cat.label}
+                            alt={categoryLabels[group.cat.key] ?? group.cat.label}
                             fill
                             sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, 90vw"
                             className="object-cover opacity-70 transition-transform duration-700 group-hover:scale-105"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/60 to-transparent" />
-                          <span className={`absolute bottom-3 left-3 flex size-9 items-center justify-center rounded-lg border border-white/10 bg-surface-container-lowest/80 backdrop-blur ${TILE[group.cat.accent]}`}>
+                          <span className={`absolute bottom-3 left-3 flex size-9 items-center justify-center rounded-lg border border-border bg-surface-container-lowest/80 backdrop-blur ${TILE[group.cat.accent]}`}>
                             <CatIcon className="size-5" aria-hidden="true" />
                           </span>
                         </div>
@@ -214,7 +233,7 @@ export default async function PricingPage() {
                               {service.note}
                             </p>
                           ) : null}
-                          <div className="mt-auto flex items-end justify-between border-t border-white/5 pt-4">
+                          <div className="mt-auto flex items-end justify-between border-t border-border pt-4">
                             <span className={`text-headline-sm font-bold ${priceClass(service.priceFrom)}`}>
                               {service.priceFrom}
                             </span>
@@ -222,7 +241,7 @@ export default async function PricingPage() {
                               href="/booking"
                               className="font-mono text-label-sm uppercase tracking-wider text-on-surface-variant transition-colors group-hover:text-secondary"
                             >
-                              Đặt →
+                              {isVi ? "Đặt" : "Book"} →
                             </Link>
                           </div>
                         </div>
@@ -241,28 +260,33 @@ export default async function PricingPage() {
       </section>
 
       {/* CTA */}
-      <section className="relative overflow-hidden border-t border-white/5 bg-surface-container-lowest py-16">
+      <section className="relative overflow-hidden border-t border-border bg-surface-container-lowest py-16">
         <div className="relative mx-auto flex max-w-container-max flex-col items-center justify-between gap-6 px-margin-mobile text-center md:flex-row md:px-margin-desktop md:text-left">
           <div>
             <h2 className="text-headline-sm text-on-surface">
-              Cần biết giá linh kiện thay thế?
+              {isVi
+                ? "Cần biết giá linh kiện thay thế?"
+                : "Need replacement part pricing?"}
             </h2>
             <p className="mt-2 text-body-md text-on-surface-variant">
-              Tra cứu RAM, SSD, HDD, pin, phụ kiện kèm bảo hành tại trang linh kiện.
+              {isVi
+                ? "Tra cứu RAM, SSD, HDD, pin, phụ kiện kèm bảo hành tại trang linh kiện."
+                : "Check RAM, SSD, HDD, battery, and accessory prices with warranty notes on the parts page."}
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link
               href="/parts"
-              className="glass-panel inline-flex items-center justify-center gap-2 rounded-xl px-7 py-4 font-mono text-label-md font-bold uppercase tracking-wider text-on-surface transition-colors hover:bg-white/10"
+              className="glass-panel inline-flex items-center justify-center gap-2 rounded-xl px-7 py-4 font-mono text-label-md font-bold uppercase tracking-wider text-on-surface transition-colors hover:bg-surface-container-high"
             >
-              Giá linh kiện
+              {isVi ? "Giá linh kiện" : "Parts pricing"}
             </Link>
             <Link
               href="/booking"
               className="btn-gradient glow-cta inline-flex items-center justify-center gap-2 rounded-xl px-7 py-4 font-mono text-label-md font-bold uppercase tracking-wider text-white"
             >
-              Đặt lịch ngay <ArrowRight className="size-5" />
+              {isVi ? "Đặt lịch ngay" : "Book now"}{" "}
+              <ArrowRight className="size-5" />
             </Link>
           </div>
         </div>

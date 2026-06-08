@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function PartsLoading() {
   return (
     <>
-      <section className="border-b border-white/5 bg-background py-20 md:py-28">
+      <section className="border-b border-border bg-background py-20 md:py-28">
         <div className="mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
           <Skeleton className="h-4 w-28" />
           <Skeleton className="mt-4 h-12 w-72 max-w-full" />

@@ -34,9 +34,10 @@ import { appointments, type AppointmentStatus } from "@/db/schema";
 import {
   APPOINTMENT_STATUS_LABEL,
   APPOINTMENT_STATUS_VARIANT,
-  DEVICE_TYPE_LABEL,
 } from "@/lib/labels";
-import { formatDateVi } from "@/lib/utils";
+import { formatDateByLocale } from "@/lib/utils";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 export const metadata: Metadata = {
   title: "Bảng điều khiển",
@@ -52,6 +53,9 @@ type StatCard = {
 };
 
 export default async function AdminDashboardPage() {
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
+  const isVi = locale === "vi";
   const groupedRows = await db
     .select({ status: appointments.status, count: count() })
     .from(appointments)
@@ -83,35 +87,35 @@ export default async function AdminDashboardPage() {
   const stats: StatCard[] = [
     {
       key: "TOTAL",
-      label: "Tổng",
+      label: isVi ? "Tổng" : "Total",
       value: total,
       Icon: Layers,
       iconClass: "text-muted-foreground",
     },
     {
       key: "RECEIVED",
-      label: APPOINTMENT_STATUS_LABEL.RECEIVED,
+      label: dictionary.labels.appointmentStatus.RECEIVED,
       value: counts.RECEIVED,
       Icon: CircleDashed,
       iconClass: "text-primary",
     },
     {
       key: "IN_PROGRESS",
-      label: APPOINTMENT_STATUS_LABEL.IN_PROGRESS,
+      label: dictionary.labels.appointmentStatus.IN_PROGRESS,
       value: counts.IN_PROGRESS,
       Icon: CircleAlert,
       iconClass: "text-amber-600",
     },
     {
       key: "COMPLETED",
-      label: APPOINTMENT_STATUS_LABEL.COMPLETED,
+      label: dictionary.labels.appointmentStatus.COMPLETED,
       value: counts.COMPLETED,
       Icon: CircleCheck,
       iconClass: "text-emerald-600",
     },
     {
       key: "CANCELLED",
-      label: APPOINTMENT_STATUS_LABEL.CANCELLED,
+      label: dictionary.labels.appointmentStatus.CANCELLED,
       value: counts.CANCELLED,
       Icon: CircleX,
       iconClass: "text-destructive",
@@ -121,9 +125,11 @@ export default async function AdminDashboardPage() {
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold md:text-4xl">Bảng điều khiển</h1>
+        <h1 className="text-3xl font-bold md:text-4xl">
+          {dictionary.adminNav.dashboard}
+        </h1>
         <p className="text-sm text-muted-foreground">
-          Hôm nay {formatDateVi(new Date())}
+          {isVi ? "Hôm nay" : "Today"} {formatDateByLocale(new Date(), locale)}
         </p>
       </div>
 
@@ -157,9 +163,13 @@ export default async function AdminDashboardPage() {
             <Cpu className="size-6" aria-hidden="true" />
           </span>
           <div>
-            <p className="font-semibold">Quản lý linh kiện</p>
+            <p className="font-semibold">
+              {isVi ? "Quản lý linh kiện" : "Manage parts"}
+            </p>
             <p className="text-sm text-muted-foreground">
-              Thêm / sửa / xóa linh kiện, tải ảnh
+              {isVi
+                ? "Thêm / sửa / xóa linh kiện, tải ảnh"
+                : "Create, edit, delete parts and upload images"}
             </p>
           </div>
         </Link>
@@ -171,9 +181,13 @@ export default async function AdminDashboardPage() {
             <Tag className="size-6" aria-hidden="true" />
           </span>
           <div>
-            <p className="font-semibold">Quản lý dịch vụ</p>
+            <p className="font-semibold">
+              {isVi ? "Quản lý dịch vụ" : "Manage services"}
+            </p>
             <p className="text-sm text-muted-foreground">
-              Thêm / sửa / xóa dịch vụ &amp; giá, tải ảnh
+              {isVi
+                ? "Thêm / sửa / xóa dịch vụ & giá, tải ảnh"
+                : "Create, edit, delete services, pricing, and images"}
             </p>
           </div>
         </Link>
@@ -182,15 +196,17 @@ export default async function AdminDashboardPage() {
         <CardHeader className="flex-row items-center justify-between gap-3 space-y-0">
           <div className="space-y-1">
             <CardTitle className="text-lg md:text-xl">
-              Lịch hẹn gần đây
+              {isVi ? "Lịch hẹn gần đây" : "Recent appointments"}
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              5 lịch hẹn mới nhất theo ngày tạo.
+              {isVi
+                ? "5 lịch hẹn mới nhất theo ngày tạo."
+                : "The 5 newest appointments by creation date."}
             </p>
           </div>
           <Button asChild variant="outline" size="sm">
             <Link href="/admin/appointments">
-              Xem tất cả
+              {isVi ? "Xem tất cả" : "View all"}
               <ChevronRight className="size-4" />
             </Link>
           </Button>
@@ -203,7 +219,9 @@ export default async function AdminDashboardPage() {
                 className="size-10 text-muted-foreground"
               />
               <p className="text-sm text-muted-foreground">
-                Chưa có lịch hẹn nào trong hệ thống.
+                {isVi
+                  ? "Chưa có lịch hẹn nào trong hệ thống."
+                  : "There are no appointments in the system yet."}
               </p>
             </div>
           ) : (
@@ -212,13 +230,13 @@ export default async function AdminDashboardPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Mã hẹn</TableHead>
-                      <TableHead>Khách</TableHead>
-                      <TableHead>Thiết bị</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead>Ngày tạo</TableHead>
+                      <TableHead>{dictionary.common.code}</TableHead>
+                      <TableHead>{dictionary.common.customer}</TableHead>
+                      <TableHead>{dictionary.common.device}</TableHead>
+                      <TableHead>{dictionary.common.status}</TableHead>
+                      <TableHead>{isVi ? "Ngày tạo" : "Created"}</TableHead>
                       <TableHead className="w-[60px]">
-                        <span className="sr-only">Chi tiết</span>
+                        <span className="sr-only">{dictionary.common.detail}</span>
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -230,24 +248,25 @@ export default async function AdminDashboardPage() {
                         </TableCell>
                         <TableCell>{appt.customerName}</TableCell>
                         <TableCell>
-                          {DEVICE_TYPE_LABEL[appt.deviceType]}
+                          {dictionary.labels.deviceType[appt.deviceType]}
                         </TableCell>
                         <TableCell>
                           <Badge
                             variant={APPOINTMENT_STATUS_VARIANT[appt.status]}
                           >
-                            {APPOINTMENT_STATUS_LABEL[appt.status]}
+                            {dictionary.labels.appointmentStatus[appt.status] ??
+                              APPOINTMENT_STATUS_LABEL[appt.status]}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {formatDateVi(appt.createdAt)}
+                          {formatDateByLocale(appt.createdAt, locale)}
                         </TableCell>
                         <TableCell>
                           <Button
                             asChild
                             variant="ghost"
                             size="sm"
-                            aria-label={`Xem chi tiết ${appt.appointmentCode}`}
+                            aria-label={`${dictionary.common.detail} ${appt.appointmentCode}`}
                           >
                             <Link
                               href={`/admin/appointments/${appt.appointmentCode}`}
@@ -274,17 +293,19 @@ export default async function AdminDashboardPage() {
                         {appt.appointmentCode}
                       </p>
                       <Badge variant={APPOINTMENT_STATUS_VARIANT[appt.status]}>
-                        {APPOINTMENT_STATUS_LABEL[appt.status]}
+                        {dictionary.labels.appointmentStatus[appt.status] ??
+                          APPOINTMENT_STATUS_LABEL[appt.status]}
                       </Badge>
                     </div>
                     <p className="mt-2 text-sm font-medium">
                       {appt.customerName}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {DEVICE_TYPE_LABEL[appt.deviceType]}
+                      {dictionary.labels.deviceType[appt.deviceType]}
                     </p>
                     <p className="mt-2 text-xs text-muted-foreground">
-                      Tạo: {formatDateVi(appt.createdAt)}
+                      {isVi ? "Tạo" : "Created"}:{" "}
+                      {formatDateByLocale(appt.createdAt, locale)}
                     </p>
                   </Link>
                 ))}

@@ -4,6 +4,7 @@ import type {
   PartType,
   Role,
 } from "@/db/schema";
+import { getDictionary, type Locale } from "@/lib/i18n";
 
 export const APPOINTMENT_STATUS_LABEL: Record<AppointmentStatus, string> = {
   RECEIVED: "Đã nhận",
@@ -52,3 +53,27 @@ export const SERVICE_GROUPS = [
 ] as const;
 
 export type ServiceGroup = (typeof SERVICE_GROUPS)[number];
+
+export function getAppointmentStatusLabel(
+  status: AppointmentStatus,
+  locale: Locale,
+): string {
+  return getDictionary(locale).labels.appointmentStatus[status];
+}
+
+export function getDeviceTypeLabel(type: DeviceType, locale: Locale): string {
+  return getDictionary(locale).labels.deviceType[type];
+}
+
+export function getPartTypeLabel(type: PartType, locale: Locale): string {
+  return getDictionary(locale).labels.partType[type];
+}
+
+export function getRoleLabel(role: Role, locale: Locale): string {
+  return getDictionary(locale).labels.role[role];
+}
+
+export function getServiceGroupLabel(group: string, locale: Locale): string {
+  const index = SERVICE_GROUPS.findIndex((value) => value === group);
+  return index >= 0 ? getDictionary(locale).labels.serviceGroups[index] : group;
+}

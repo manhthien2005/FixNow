@@ -31,9 +31,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { BookingDateTimePicker } from "@/components/features/booking-date-time-picker";
 import { DEVICE_TYPE_LABEL, SERVICE_GROUPS } from "@/lib/labels";
-import { bookingSchema, type BookingInput } from "@/lib/validations/booking";
+import {
+  bookingFormSchema,
+  type BookingInput,
+} from "@/lib/validations/booking";
 import type { DeviceType } from "@/db/schema";
+import {
+  INPUT_LIMITS,
+  PHONE_RAW_INPUT_MAX_LENGTH,
+  limitText,
+  normalizeSpaces,
+  sanitizePhoneInput,
+} from "@/lib/input-normalizers";
+import { useI18n } from "@/components/i18n/language-provider";
 
 interface BookingFormProps {
   defaultValues?: Partial<BookingInput>;
@@ -48,9 +60,10 @@ const DEVICE_TYPE_OPTIONS = Object.entries(DEVICE_TYPE_LABEL) as [
 
 export function BookingForm({ defaultValues }: BookingFormProps) {
   const router = useRouter();
+  const { dictionary } = useI18n();
 
   const form = useForm<BookingInput>({
-    resolver: zodResolver(bookingSchema),
+    resolver: zodResolver(bookingFormSchema),
     defaultValues: {
       customerName: "",
       phone: "",
@@ -66,16 +79,16 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
   async function onSubmit(data: BookingInput) {
     try {
       const payload: Record<string, unknown> = {
-        customerName: data.customerName,
-        phone: data.phone,
-        address: data.address,
+        customerName: normalizeSpaces(data.customerName),
+        phone: sanitizePhoneInput(data.phone),
+        address: normalizeSpaces(data.address),
         deviceType: data.deviceType,
         serviceGroup: data.serviceGroup,
-        issueDescription: data.issueDescription,
+        issueDescription: data.issueDescription.trim(),
       };
 
       if (data.preferredTime && data.preferredTime.length > 0) {
-        payload.preferredTime = new Date(data.preferredTime).toISOString();
+        payload.preferredTime = data.preferredTime;
       }
 
       const res = await fetch("/api/appointments", {
@@ -112,14 +125,14 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
           },
         );
         if (!matched) {
-          toast.error("Dữ liệu không hợp lệ, vui lòng kiểm tra lại.");
+          toast.error(dictionary.booking.invalidData);
         }
         return;
       }
 
-      toast.error("Có lỗi xảy ra, vui lòng thử lại sau.");
+      toast.error(dictionary.booking.genericError);
     } catch {
-      toast.error("Có lỗi xảy ra, vui lòng thử lại sau.");
+      toast.error(dictionary.booking.genericError);
     }
   }
 
@@ -128,9 +141,9 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
   return (
     <Card className="mx-auto max-w-2xl">
       <CardHeader>
-        <CardTitle className="text-2xl">Đặt lịch sửa chữa</CardTitle>
+        <CardTitle className="text-2xl">{dictionary.booking.formTitle}</CardTitle>
         <CardDescription>
-          Điền thông tin để FixNow liên hệ và lên lịch hẹn.
+          {dictionary.booking.formDescription}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -146,14 +159,24 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                 name="customerName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Họ tên</FormLabel>
+                    <FormLabel>{dictionary.booking.name}</FormLabel>
                     <FormControl>
                       <Input
                         type="text"
                         autoComplete="name"
-                        placeholder="Nguyễn Văn A"
+                        placeholder={dictionary.booking.namePlaceholder}
                         className="h-11 text-base"
+                        maxLength={INPUT_LIMITS.name}
                         {...field}
+                        onChange={(event) =>
+                          field.onChange(
+                            limitText(event.target.value, INPUT_LIMITS.name),
+                          )
+                        }
+                        onBlur={(event) => {
+                          field.onChange(normalizeSpaces(event.target.value));
+                          field.onBlur();
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -166,7 +189,7 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Số điện thoại</FormLabel>
+                    <FormLabel>{dictionary.booking.phone}</FormLabel>
                     <FormControl>
                       <Input
                         type="tel"
@@ -174,7 +197,11 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                         autoComplete="tel"
                         placeholder="0901234567"
                         className="h-11 text-base"
+                        maxLength={PHONE_RAW_INPUT_MAX_LENGTH}
                         {...field}
+                        onChange={(event) =>
+                          field.onChange(sanitizePhoneInput(event.target.value))
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -187,15 +214,25 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
               control={form.control}
               name="address"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Địa chỉ</FormLabel>
+              <FormItem>
+                  <FormLabel>{dictionary.booking.address}</FormLabel>
                   <FormControl>
                     <Input
                       type="text"
                       autoComplete="street-address"
-                      placeholder="Số nhà, đường, quận, thành phố"
+                      placeholder={dictionary.booking.addressPlaceholder}
                       className="h-11 text-base"
+                      maxLength={INPUT_LIMITS.address}
                       {...field}
+                      onChange={(event) =>
+                        field.onChange(
+                          limitText(event.target.value, INPUT_LIMITS.address),
+                        )
+                      }
+                      onBlur={(event) => {
+                        field.onChange(normalizeSpaces(event.target.value));
+                        field.onBlur();
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -209,20 +246,22 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                 name="deviceType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Loại thiết bị</FormLabel>
+                    <FormLabel>{dictionary.booking.deviceType}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger className="h-11 text-base md:text-sm">
-                          <SelectValue placeholder="Chọn loại thiết bị" />
+                          <SelectValue
+                            placeholder={dictionary.booking.devicePlaceholder}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {DEVICE_TYPE_OPTIONS.map(([value, label]) => (
                           <SelectItem key={value} value={value}>
-                            {label}
+                            {dictionary.labels.deviceType[value] ?? label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -237,20 +276,22 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                 name="serviceGroup"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nhóm dịch vụ cần sửa</FormLabel>
+                    <FormLabel>{dictionary.booking.serviceGroup}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger className="h-11 text-base md:text-sm">
-                          <SelectValue placeholder="Chọn nhóm dịch vụ" />
+                          <SelectValue
+                            placeholder={dictionary.booking.servicePlaceholder}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {SERVICE_GROUPS.map((group) => (
+                        {SERVICE_GROUPS.map((group, index) => (
                           <SelectItem key={group} value={group}>
-                            {group}
+                            {dictionary.labels.serviceGroups[index] ?? group}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -266,13 +307,26 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
               name="issueDescription"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mô tả lỗi</FormLabel>
+                  <FormLabel>{dictionary.booking.issue}</FormLabel>
                   <FormControl>
                     <Textarea
                       rows={4}
-                      placeholder="Mô tả tình trạng máy (ít nhất 10 ký tự)"
+                      placeholder={dictionary.booking.issuePlaceholder}
                       className="text-base md:text-sm"
+                      maxLength={INPUT_LIMITS.issueDescription}
                       {...field}
+                      onChange={(event) =>
+                        field.onChange(
+                          limitText(
+                            event.target.value,
+                            INPUT_LIMITS.issueDescription,
+                          ),
+                        )
+                      }
+                      onBlur={(event) => {
+                        field.onChange(event.target.value.trim());
+                        field.onBlur();
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -285,17 +339,15 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
               name="preferredTime"
               render={({ field }) => (
                 <FormItem className="md:max-w-sm">
-                  <FormLabel>Thời gian mong muốn (tuỳ chọn)</FormLabel>
+                  <FormLabel>{dictionary.booking.preferredTime}</FormLabel>
                   <FormControl>
-                    <Input
-                      type="datetime-local"
-                      className="h-11 text-base"
-                      {...field}
+                    <BookingDateTimePicker
                       value={field.value ?? ""}
+                      onChange={field.onChange}
                     />
                   </FormControl>
                   <FormDescription>
-                    Để trống nếu bạn không có giờ cụ thể.
+                    {dictionary.booking.timeDescription}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -309,11 +361,12 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                 disabled={isSubmitting}
                 className="h-11 w-full md:w-auto md:px-12"
               >
-                {isSubmitting ? "Đang gửi..." : "Gửi yêu cầu"}
+                {isSubmitting
+                  ? dictionary.booking.submitting
+                  : dictionary.booking.submit}
               </Button>
               <p className="text-sm text-muted-foreground">
-                Sau khi gửi, bạn sẽ nhận được mã lịch hẹn để tra cứu trạng
-                thái.
+                {dictionary.booking.afterSubmit}
               </p>
             </div>
           </form>

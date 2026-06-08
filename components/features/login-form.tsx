@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
+import { INPUT_LIMITS, limitText } from "@/lib/input-normalizers";
+import { useI18n } from "@/components/i18n/language-provider";
 
 interface LoginFormProps {
   callbackUrl?: string;
@@ -33,6 +35,7 @@ interface LoginFormProps {
 
 export function LoginForm({ callbackUrl }: LoginFormProps) {
   const router = useRouter();
+  const { dictionary } = useI18n();
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -52,9 +55,9 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
       });
 
       if (result?.error) {
-        toast.error("SĐT/email hoặc mật khẩu không đúng");
+        toast.error(dictionary.auth.invalidCredentials);
         form.setError("password", {
-          message: "SĐT/email hoặc mật khẩu không đúng",
+          message: dictionary.auth.invalidCredentials,
         });
         return;
       }
@@ -64,18 +67,18 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
         router.refresh();
       }
     } catch {
-      toast.error("Có lỗi xảy ra, vui lòng thử lại.");
+      toast.error(dictionary.auth.genericError);
     }
   }
 
   const isSubmitting = form.formState.isSubmitting;
 
   return (
-    <Card className="glass-panel border-white/10">
+    <Card className="glass-panel border-border">
       <CardHeader className="space-y-2 text-center">
-        <CardTitle className="text-2xl">Đăng nhập</CardTitle>
+        <CardTitle className="text-2xl">{dictionary.auth.loginTitle}</CardTitle>
         <CardDescription>
-          Đăng nhập để đặt lịch và theo dõi đơn sửa của bạn.
+          {dictionary.auth.loginDescription}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -90,14 +93,24 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
               name="identifier"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Số điện thoại hoặc email</FormLabel>
+                  <FormLabel>{dictionary.auth.identifier}</FormLabel>
                   <FormControl>
                     <Input
                       type="text"
                       autoComplete="username"
                       placeholder="0901234567"
                       className="h-11 text-base"
+                      maxLength={INPUT_LIMITS.email}
                       {...field}
+                      onChange={(event) =>
+                        field.onChange(
+                          limitText(event.target.value, INPUT_LIMITS.email),
+                        )
+                      }
+                      onBlur={(event) => {
+                        field.onChange(event.target.value.trim().toLowerCase());
+                        field.onBlur();
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -108,14 +121,14 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem>
+                  <FormItem>
                   <div className="flex items-center justify-between">
-                    <FormLabel>Mật khẩu</FormLabel>
+                    <FormLabel>{dictionary.common.password}</FormLabel>
                     <Link
                       href="/forgot-password"
                       className="text-sm font-medium text-primary hover:underline"
                     >
-                      Quên mật khẩu?
+                      {dictionary.auth.forgotPassword}
                     </Link>
                   </div>
                   <FormControl>
@@ -123,7 +136,13 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
                       type="password"
                       autoComplete="current-password"
                       className="h-11 text-base"
+                      maxLength={INPUT_LIMITS.password}
                       {...field}
+                      onChange={(event) =>
+                        field.onChange(
+                          limitText(event.target.value, INPUT_LIMITS.password),
+                        )
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -136,19 +155,21 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
               size="lg"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Đang xử lý..." : "Đăng nhập"}
+              {isSubmitting
+                ? dictionary.common.processing
+                : dictionary.auth.loginButton}
             </Button>
           </form>
         </Form>
       </CardContent>
       <CardFooter className="justify-center text-sm text-muted-foreground">
         <span>
-          Chưa có tài khoản?{" "}
+          {dictionary.auth.noAccount}{" "}
           <Link
             href={registerHref}
             className="font-medium text-primary hover:underline"
           >
-            Đăng ký
+            {dictionary.auth.registerButton}
           </Link>
         </span>
       </CardFooter>

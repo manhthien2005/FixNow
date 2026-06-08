@@ -26,6 +26,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
+import {
+  INPUT_LIMITS,
+  PHONE_RAW_INPUT_MAX_LENGTH,
+  limitText,
+  normalizeSpaces,
+  sanitizePhoneInput,
+} from "@/lib/input-normalizers";
+import { useI18n } from "@/components/i18n/language-provider";
 
 interface RegisterFormProps {
   callbackUrl?: string;
@@ -35,6 +43,7 @@ type FieldErrorMap = Partial<Record<keyof RegisterInput, string[]>>;
 
 export function RegisterForm({ callbackUrl }: RegisterFormProps) {
   const router = useRouter();
+  const { dictionary } = useI18n();
 
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -60,7 +69,7 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
       });
 
       if (res.status === 201) {
-        toast.success("Đăng ký thành công, đang đăng nhập...");
+        toast.success(dictionary.auth.registerSuccess);
         const result = await signIn("credentials", {
           identifier: data.phone,
           password: data.password,
@@ -70,7 +79,7 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
           router.push(callbackUrl ?? "/");
           router.refresh();
         } else {
-          toast.message("Đăng ký thành công. Vui lòng đăng nhập.");
+          toast.message(dictionary.auth.registerSuccessLogin);
           router.push("/login");
         }
         return;
@@ -82,12 +91,12 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
         };
         if (body.error === "phone_taken") {
           form.setError("phone", {
-            message: "Số điện thoại đã được đăng ký",
+            message: dictionary.auth.phoneTaken,
           });
         } else if (body.error === "email_taken") {
-          form.setError("email", { message: "Email đã được sử dụng" });
+          form.setError("email", { message: dictionary.auth.emailTaken });
         } else {
-          toast.error("Thông tin đã tồn tại, vui lòng kiểm tra lại.");
+          toast.error(dictionary.auth.duplicate);
         }
         return;
       }
@@ -108,25 +117,27 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
           },
         );
         if (!matched) {
-          toast.error("Dữ liệu không hợp lệ, vui lòng kiểm tra lại.");
+          toast.error(dictionary.auth.invalidData);
         }
         return;
       }
 
-      toast.error("Có lỗi xảy ra, vui lòng thử lại.");
+      toast.error(dictionary.auth.genericError);
     } catch {
-      toast.error("Có lỗi xảy ra, vui lòng thử lại.");
+      toast.error(dictionary.auth.genericError);
     }
   }
 
   const isSubmitting = form.formState.isSubmitting;
 
   return (
-    <Card className="glass-panel border-white/10">
+    <Card className="glass-panel border-border">
       <CardHeader className="space-y-2 text-center">
-        <CardTitle className="text-2xl">Đăng ký tài khoản</CardTitle>
+        <CardTitle className="text-2xl">
+          {dictionary.auth.registerTitle}
+        </CardTitle>
         <CardDescription>
-          Tạo tài khoản để theo dõi lịch hẹn dễ dàng hơn.
+          {dictionary.auth.registerDescription}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -141,14 +152,24 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Họ tên</FormLabel>
+                  <FormLabel>{dictionary.common.fullName}</FormLabel>
                   <FormControl>
                     <Input
                       type="text"
                       autoComplete="name"
-                      placeholder="Nguyễn Văn A"
+                      placeholder={dictionary.booking.namePlaceholder}
                       className="h-11 text-base"
+                      maxLength={INPUT_LIMITS.name}
                       {...field}
+                      onChange={(event) =>
+                        field.onChange(
+                          limitText(event.target.value, INPUT_LIMITS.name),
+                        )
+                      }
+                      onBlur={(event) => {
+                        field.onChange(normalizeSpaces(event.target.value));
+                        field.onBlur();
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -160,7 +181,7 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Số điện thoại</FormLabel>
+                  <FormLabel>{dictionary.common.phone}</FormLabel>
                   <FormControl>
                     <Input
                       type="tel"
@@ -168,7 +189,11 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
                       autoComplete="tel"
                       placeholder="0901234567"
                       className="h-11 text-base"
+                      maxLength={PHONE_RAW_INPUT_MAX_LENGTH}
                       {...field}
+                      onChange={(event) =>
+                        field.onChange(sanitizePhoneInput(event.target.value))
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -180,14 +205,24 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email (tuỳ chọn)</FormLabel>
+                  <FormLabel>{dictionary.auth.emailOptional}</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
                       autoComplete="email"
                       placeholder="ban@example.com"
                       className="h-11 text-base"
+                      maxLength={INPUT_LIMITS.email}
                       {...field}
+                      onChange={(event) =>
+                        field.onChange(
+                          limitText(event.target.value, INPUT_LIMITS.email),
+                        )
+                      }
+                      onBlur={(event) => {
+                        field.onChange(event.target.value.trim().toLowerCase());
+                        field.onBlur();
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -199,13 +234,19 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mật khẩu</FormLabel>
+                  <FormLabel>{dictionary.common.password}</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
                       autoComplete="new-password"
                       className="h-11 text-base"
+                      maxLength={INPUT_LIMITS.password}
                       {...field}
+                      onChange={(event) =>
+                        field.onChange(
+                          limitText(event.target.value, INPUT_LIMITS.password),
+                        )
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -217,13 +258,19 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Xác nhận mật khẩu</FormLabel>
+                  <FormLabel>{dictionary.auth.confirmPassword}</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
                       autoComplete="new-password"
                       className="h-11 text-base"
+                      maxLength={INPUT_LIMITS.password}
                       {...field}
+                      onChange={(event) =>
+                        field.onChange(
+                          limitText(event.target.value, INPUT_LIMITS.password),
+                        )
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -236,19 +283,21 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
               size="lg"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Đang xử lý..." : "Đăng ký"}
+              {isSubmitting
+                ? dictionary.common.processing
+                : dictionary.auth.registerButton}
             </Button>
           </form>
         </Form>
       </CardContent>
       <CardFooter className="justify-center text-sm text-muted-foreground">
         <span>
-          Đã có tài khoản?{" "}
+          {dictionary.auth.hasAccount}{" "}
           <Link
             href={loginHref}
             className="font-medium text-primary hover:underline"
           >
-            Đăng nhập
+            {dictionary.auth.loginButton}
           </Link>
         </span>
       </CardFooter>

@@ -18,9 +18,11 @@ import { appointments } from "@/db/schema";
 import {
   APPOINTMENT_STATUS_LABEL,
   APPOINTMENT_STATUS_VARIANT,
-  DEVICE_TYPE_LABEL,
+  getServiceGroupLabel,
 } from "@/lib/labels";
-import { formatDateVi } from "@/lib/utils";
+import { formatDateByLocale } from "@/lib/utils";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 interface AdminAppointmentDetailPageProps {
   params: Promise<{ code: string }>;
@@ -40,6 +42,9 @@ export default async function AdminAppointmentDetailPage({
   params,
 }: AdminAppointmentDetailPageProps) {
   const { code } = await params;
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
+  const isVi = locale === "vi";
 
   const appt = await db.query.appointments.findFirst({
     where: eq(appointments.appointmentCode, code),
@@ -68,7 +73,7 @@ export default async function AdminAppointmentDetailPage({
       <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
         <Link href="/admin/appointments">
           <ArrowLeft className="mr-2 size-4" />
-          Quay lại danh sách
+          {isVi ? "Quay lại danh sách" : "Back to list"}
         </Link>
       </Button>
 
@@ -76,7 +81,9 @@ export default async function AdminAppointmentDetailPage({
         <CardHeader className="space-y-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Mã lịch hẹn</p>
+              <p className="text-sm text-muted-foreground">
+                {dictionary.track.code}
+              </p>
               <p className="font-mono text-2xl font-bold text-primary md:text-3xl">
                 {appt.appointmentCode}
               </p>
@@ -85,73 +92,90 @@ export default async function AdminAppointmentDetailPage({
               variant={APPOINTMENT_STATUS_VARIANT[appt.status]}
               className="w-fit"
             >
-              {APPOINTMENT_STATUS_LABEL[appt.status]}
+              {dictionary.labels.appointmentStatus[appt.status] ??
+                APPOINTMENT_STATUS_LABEL[appt.status]}
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
             <div>
-              <dt className="text-sm text-muted-foreground">Tên khách</dt>
+              <dt className="text-sm text-muted-foreground">
+                {dictionary.common.customer}
+              </dt>
               <dd className="mt-1 flex flex-wrap items-center gap-2 text-base font-medium">
                 <span>{appt.customerName}</span>
                 {appt.userId === null ? (
                   <Badge variant="outline" className="text-[10px] uppercase">
-                    Khách lẻ
+                    {isVi ? "Khách lẻ" : "Guest"}
                   </Badge>
                 ) : null}
               </dd>
             </div>
             <div>
-              <dt className="text-sm text-muted-foreground">Số điện thoại</dt>
+              <dt className="text-sm text-muted-foreground">
+                {dictionary.common.phone}
+              </dt>
               <dd className="mt-1 font-mono text-base font-medium">
                 {appt.phone}
               </dd>
             </div>
             <div className="md:col-span-2">
-              <dt className="text-sm text-muted-foreground">Địa chỉ</dt>
+              <dt className="text-sm text-muted-foreground">
+                {dictionary.common.address}
+              </dt>
               <dd className="mt-1 text-base font-medium">{appt.address}</dd>
             </div>
             <div>
-              <dt className="text-sm text-muted-foreground">Loại thiết bị</dt>
+              <dt className="text-sm text-muted-foreground">
+                {dictionary.booking.deviceType}
+              </dt>
               <dd className="mt-1 text-base font-medium">
-                {DEVICE_TYPE_LABEL[appt.deviceType]}
+                {dictionary.labels.deviceType[appt.deviceType]}
               </dd>
             </div>
             <div>
-              <dt className="text-sm text-muted-foreground">Nhóm dịch vụ</dt>
+              <dt className="text-sm text-muted-foreground">
+                {dictionary.booking.serviceGroup}
+              </dt>
               <dd className="mt-1 text-base font-medium">
-                {appt.serviceGroup}
+                {getServiceGroupLabel(appt.serviceGroup, locale)}
               </dd>
             </div>
             <div className="md:col-span-2">
-              <dt className="text-sm text-muted-foreground">Mô tả lỗi</dt>
+              <dt className="text-sm text-muted-foreground">
+                {dictionary.booking.issue}
+              </dt>
               <dd className="mt-1 whitespace-pre-wrap break-words text-base">
                 {appt.issueDescription}
               </dd>
             </div>
             <div>
               <dt className="text-sm text-muted-foreground">
-                Thời gian mong muốn
+                {dictionary.booking.preferredTime}
               </dt>
               <dd className="mt-1 text-base font-medium">
                 {appt.preferredTime
-                  ? formatDateVi(appt.preferredTime)
-                  : "Linh hoạt"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm text-muted-foreground">Ngày tạo</dt>
-              <dd className="mt-1 text-base font-medium">
-                {formatDateVi(appt.createdAt)}
+                  ? formatDateByLocale(appt.preferredTime, locale)
+                  : isVi
+                    ? "Linh hoạt"
+                    : "Flexible"}
               </dd>
             </div>
             <div>
               <dt className="text-sm text-muted-foreground">
-                Cập nhật gần nhất
+                {isVi ? "Ngày tạo" : "Created"}
               </dt>
               <dd className="mt-1 text-base font-medium">
-                {formatDateVi(appt.updatedAt)}
+                {formatDateByLocale(appt.createdAt, locale)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">
+                {isVi ? "Cập nhật gần nhất" : "Last updated"}
+              </dt>
+              <dd className="mt-1 text-base font-medium">
+                {formatDateByLocale(appt.updatedAt, locale)}
               </dd>
             </div>
           </dl>

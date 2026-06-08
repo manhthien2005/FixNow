@@ -15,17 +15,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { AppointmentStatus } from "@/db/schema";
-import { APPOINTMENT_STATUS_LABEL } from "@/lib/labels";
+import {
+  INPUT_LIMITS,
+  limitText,
+  normalizeSpaces,
+} from "@/lib/input-normalizers";
+import { useI18n } from "@/components/i18n/language-provider";
 
 type StatusFilter = AppointmentStatus | "ALL";
-
-const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
-  { value: "ALL", label: "Tất cả trạng thái" },
-  { value: "RECEIVED", label: APPOINTMENT_STATUS_LABEL.RECEIVED },
-  { value: "IN_PROGRESS", label: APPOINTMENT_STATUS_LABEL.IN_PROGRESS },
-  { value: "COMPLETED", label: APPOINTMENT_STATUS_LABEL.COMPLETED },
-  { value: "CANCELLED", label: APPOINTMENT_STATUS_LABEL.CANCELLED },
-];
 
 interface AdminAppointmentsFilterProps {
   initialStatus?: StatusFilter;
@@ -37,13 +34,27 @@ export function AdminAppointmentsFilter({
   initialQ = "",
 }: AdminAppointmentsFilterProps) {
   const router = useRouter();
+  const { dictionary, locale } = useI18n();
   const [status, setStatus] = useState<StatusFilter>(initialStatus);
   const [q, setQ] = useState(initialQ);
+  const statusOptions: { value: StatusFilter; label: string }[] = [
+    {
+      value: "ALL",
+      label: locale === "vi" ? "Tất cả trạng thái" : "All statuses",
+    },
+    { value: "RECEIVED", label: dictionary.labels.appointmentStatus.RECEIVED },
+    {
+      value: "IN_PROGRESS",
+      label: dictionary.labels.appointmentStatus.IN_PROGRESS,
+    },
+    { value: "COMPLETED", label: dictionary.labels.appointmentStatus.COMPLETED },
+    { value: "CANCELLED", label: dictionary.labels.appointmentStatus.CANCELLED },
+  ];
 
   function applyFilters() {
     const params = new URLSearchParams();
     if (status !== "ALL") params.set("status", status);
-    const trimmed = q.trim();
+    const trimmed = normalizeSpaces(q);
     if (trimmed) params.set("q", trimmed);
     const qs = params.toString();
     router.push(qs ? `/admin/appointments?${qs}` : "/admin/appointments");
@@ -65,16 +76,20 @@ export function AdminAppointmentsFilter({
   return (
     <div className="flex flex-col gap-3 md:flex-row md:items-end">
       <div className="flex-1 space-y-1.5 md:max-w-xs">
-        <Label htmlFor="admin-status-filter">Trạng thái</Label>
+        <Label htmlFor="admin-status-filter">{dictionary.common.status}</Label>
         <Select
           value={status}
           onValueChange={(value) => setStatus(value as StatusFilter)}
         >
           <SelectTrigger id="admin-status-filter" className="h-11">
-            <SelectValue placeholder="Tất cả trạng thái" />
+            <SelectValue
+              placeholder={
+                locale === "vi" ? "Tất cả trạng thái" : "All statuses"
+              }
+            />
           </SelectTrigger>
           <SelectContent>
-            {STATUS_OPTIONS.map((opt) => (
+            {statusOptions.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
               </SelectItem>
@@ -84,16 +99,20 @@ export function AdminAppointmentsFilter({
       </div>
 
       <div className="flex-1 space-y-1.5">
-        <Label htmlFor="admin-search-q">Tìm kiếm</Label>
+        <Label htmlFor="admin-search-q">{dictionary.common.search}</Label>
         <Input
           id="admin-search-q"
           type="search"
           inputMode="search"
           value={q}
-          onChange={(event) => setQ(event.target.value)}
+          onChange={(event) =>
+            setQ(limitText(event.target.value, INPUT_LIMITS.search))
+          }
+          onBlur={(event) => setQ(normalizeSpaces(event.target.value))}
           onKeyDown={onKeyDown}
-          placeholder="Mã hẹn hoặc SĐT"
+          placeholder={locale === "vi" ? "Mã hẹn hoặc SĐT" : "Code or phone"}
           className="h-11 text-base md:text-sm"
+          maxLength={INPUT_LIMITS.search}
         />
       </div>
 
@@ -104,7 +123,7 @@ export function AdminAppointmentsFilter({
           className="h-11 flex-1 md:flex-none"
         >
           <Search className="size-4" />
-          Tìm
+          {dictionary.common.search}
         </Button>
         <Button
           type="button"
@@ -113,7 +132,7 @@ export function AdminAppointmentsFilter({
           className="h-11"
         >
           <X className="size-4" />
-          Xoá lọc
+          {locale === "vi" ? "Xoá lọc" : "Clear"}
         </Button>
       </div>
     </div>

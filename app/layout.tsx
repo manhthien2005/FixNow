@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Providers } from "@/app/providers";
 import { Toaster } from "@/components/ui/sonner";
+import { getLocale } from "@/lib/i18n-server";
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
@@ -24,19 +26,24 @@ export const metadata: Metadata = {
     "FixNow cung cấp dịch vụ sửa chữa, bảo trì laptop và PC tận nơi. Minh bạch giá, kỹ thuật viên đến tận nhà trong bán kính 3–5km.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="vi"
-      className={`dark ${inter.variable} ${jetbrainsMono.variable}`}
+      lang={locale}
+      suppressHydrationWarning
+      className={`${inter.variable} ${jetbrainsMono.variable}`}
     >
       <body className="bg-background font-sans text-on-surface antialiased">
-        {children}
-        <Toaster />
+        <Providers locale={locale}>
+          {children}
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );

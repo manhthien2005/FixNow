@@ -20,6 +20,13 @@ import {
 import { ImageUpload } from "@/components/features/admin/image-upload";
 import { resolveServiceImage } from "@/lib/images";
 import type { ServicePrice } from "@/db/schema";
+import {
+  INPUT_LIMITS,
+  limitText,
+  normalizeSpaces,
+  sanitizeIntegerInput,
+} from "@/lib/input-normalizers";
+import { useI18n } from "@/components/i18n/language-provider";
 
 type FormState = {
   serviceName: string;
@@ -56,6 +63,8 @@ export function ServicesManager({
   initialServices: ServicePrice[];
 }) {
   const router = useRouter();
+  const { locale } = useI18n();
+  const isVi = locale === "vi";
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ServicePrice | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -79,15 +88,19 @@ export function ServicesManager({
   async function handleSave() {
     setError(null);
     if (form.serviceName.trim().length < 2 || form.priceFrom.trim().length < 1) {
-      setError("Vui lòng nhập tên dịch vụ (≥2 ký tự) và giá.");
+      setError(
+        isVi
+          ? "Vui lòng nhập tên dịch vụ (>=2 ký tự) và giá."
+          : "Please enter a service name (at least 2 characters) and price.",
+      );
       return;
     }
     setSaving(true);
     try {
       const payload = {
-        serviceName: form.serviceName.trim(),
-        priceFrom: form.priceFrom.trim(),
-        note: form.note.trim() || null,
+        serviceName: normalizeSpaces(form.serviceName),
+        priceFrom: normalizeSpaces(form.priceFrom),
+        note: form.note.trim() ? normalizeSpaces(form.note) : null,
         imagePath: form.imagePath,
         isActive: form.isActive,
         sortOrder: form.sortOrder,
@@ -102,20 +115,31 @@ export function ServicesManager({
       );
       const data = (await res.json()) as { message?: string };
       if (!res.ok) {
-        setError(data.message ?? "Lưu thất bại. Kiểm tra lại dữ liệu.");
+        setError(
+          data.message ??
+            (isVi ? "Lưu thất bại. Kiểm tra lại dữ liệu." : "Save failed. Check the data again."),
+        );
         return;
       }
       setOpen(false);
       router.refresh();
     } catch {
-      setError("Lỗi mạng khi lưu.");
+      setError(isVi ? "Lỗi mạng khi lưu." : "Network error while saving.");
     } finally {
       setSaving(false);
     }
   }
 
   async function handleDelete(s: ServicePrice) {
-    if (!confirm(`Xóa dịch vụ "${s.serviceName}"?`)) return;
+    if (
+      !confirm(
+        isVi
+          ? `Xóa dịch vụ "${s.serviceName}"?`
+          : `Delete service "${s.serviceName}"?`,
+      )
+    ) {
+      return;
+    }
     setDeletingId(s.id);
     try {
       const res = await fetch(`/api/admin/services/${s.id}`, {
@@ -131,11 +155,11 @@ export function ServicesManager({
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">
-          {initialServices.length} dịch vụ
+          {initialServices.length} {isVi ? "dịch vụ" : "services"}
         </p>
         <Button onClick={openCreate}>
           <Plus className="size-4" />
-          Thêm dịch vụ
+          {isVi ? "Thêm dịch vụ" : "Add service"}
         </Button>
       </div>
 
@@ -159,7 +183,7 @@ export function ServicesManager({
                 </p>
                 {!s.isActive ? (
                   <span className="shrink-0 rounded bg-destructive/10 px-2 py-0.5 text-xs text-destructive">
-                    Ẩn
+                    {isVi ? "Ẩn" : "Hidden"}
                   </span>
                 ) : null}
               </div>
@@ -204,10 +228,18 @@ export function ServicesManager({
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {editing ? "Sửa dịch vụ" : "Thêm dịch vụ"}
+              {editing
+                ? isVi
+                  ? "Sửa dịch vụ"
+                  : "Edit service"
+                : isVi
+                  ? "Thêm dịch vụ"
+                  : "Add service"}
             </DialogTitle>
             <DialogDescription>
-              Thông tin hiển thị trên trang bảng giá dịch vụ.
+              {isVi
+                ? "Thông tin hiển thị trên trang bảng giá dịch vụ."
+                : "Information shown on the public pricing page."}
             </DialogDescription>
           </DialogHeader>
 
@@ -220,40 +252,75 @@ export function ServicesManager({
             />
 
             <div className="space-y-1.5">
-              <Label htmlFor="svc-name">Tên dịch vụ</Label>
+              <Label htmlFor="svc-name">
+                {isVi ? "Tên dịch vụ" : "Service name"}
+              </Label>
               <Input
                 id="svc-name"
                 value={form.serviceName}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, serviceName: e.target.value }))
+                  setForm((f) => ({
+                    ...f,
+                    serviceName: limitText(
+                      e.target.value,
+                      INPUT_LIMITS.catalogName,
+                    ),
+                  }))
                 }
-                placeholder="Vệ sinh laptop / PC + tra keo tản nhiệt"
+                onBlur={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    serviceName: normalizeSpaces(e.target.value),
+                  }))
+                }
+                placeholder={
+                  isVi
+                    ? "Vệ sinh laptop / PC + tra keo tản nhiệt"
+                    : "Laptop / PC cleaning + thermal paste"
+                }
+                maxLength={INPUT_LIMITS.catalogName}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="svc-price">Giá tham khảo</Label>
+                <Label htmlFor="svc-price">
+                  {isVi ? "Giá tham khảo" : "Reference price"}
+                </Label>
                 <Input
                   id="svc-price"
                   value={form.priceFrom}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, priceFrom: e.target.value }))
+                    setForm((f) => ({
+                      ...f,
+                      priceFrom: limitText(e.target.value, INPUT_LIMITS.price),
+                    }))
                   }
-                  placeholder="Từ 150.000đ"
+                  onBlur={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      priceFrom: normalizeSpaces(e.target.value),
+                    }))
+                  }
+                  placeholder={isVi ? "Từ 150.000đ" : "From 150,000 VND"}
+                  maxLength={INPUT_LIMITS.price}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="svc-order">Thứ tự</Label>
+                <Label htmlFor="svc-order">
+                  {isVi ? "Thứ tự" : "Sort order"}
+                </Label>
                 <Input
                   id="svc-order"
                   type="number"
                   min={0}
+                  max={INPUT_LIMITS.sortOrderMax}
+                  inputMode="numeric"
                   value={form.sortOrder}
                   onChange={(e) =>
                     setForm((f) => ({
                       ...f,
-                      sortOrder: Number(e.target.value) || 0,
+                      sortOrder: sanitizeIntegerInput(e.target.value),
                     }))
                   }
                 />
@@ -261,15 +328,27 @@ export function ServicesManager({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="svc-note">Ghi chú</Label>
+              <Label htmlFor="svc-note">{isVi ? "Ghi chú" : "Note"}</Label>
               <Textarea
                 id="svc-note"
                 value={form.note}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, note: e.target.value }))
+                  setForm((f) => ({
+                    ...f,
+                    note: limitText(e.target.value, INPUT_LIMITS.note),
+                  }))
+                }
+                onBlur={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    note: e.target.value.trim()
+                      ? normalizeSpaces(e.target.value)
+                      : "",
+                  }))
                 }
                 rows={2}
-                placeholder="Báo giá trước khi sửa"
+                placeholder={isVi ? "Báo giá trước khi sửa" : "Quote before repair"}
+                maxLength={INPUT_LIMITS.note}
               />
             </div>
 
@@ -282,7 +361,7 @@ export function ServicesManager({
                 }
                 className="size-4 rounded border-input"
               />
-              Hiển thị trên bảng giá
+              {isVi ? "Hiển thị trên bảng giá" : "Show on pricing page"}
             </label>
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
@@ -290,11 +369,17 @@ export function ServicesManager({
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Hủy
+              {isVi ? "Hủy" : "Cancel"}
             </Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving ? <Loader2 className="size-4 animate-spin" /> : null}
-              {editing ? "Lưu thay đổi" : "Tạo mới"}
+              {editing
+                ? isVi
+                  ? "Lưu thay đổi"
+                  : "Save changes"
+                : isVi
+                  ? "Tạo mới"
+                  : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>

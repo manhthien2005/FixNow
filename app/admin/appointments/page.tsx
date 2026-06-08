@@ -24,9 +24,11 @@ import {
 import {
   APPOINTMENT_STATUS_LABEL,
   APPOINTMENT_STATUS_VARIANT,
-  DEVICE_TYPE_LABEL,
+  getServiceGroupLabel,
 } from "@/lib/labels";
-import { formatDateVi } from "@/lib/utils";
+import { formatDateByLocale } from "@/lib/utils";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 export const metadata: Metadata = {
   title: "Lịch hẹn",
@@ -51,6 +53,9 @@ interface AdminAppointmentsPageProps {
 export default async function AdminAppointmentsPage({
   searchParams,
 }: AdminAppointmentsPageProps) {
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
+  const isVi = locale === "vi";
   const sp = await searchParams;
 
   const status: AppointmentStatus | undefined =
@@ -112,8 +117,12 @@ export default async function AdminAppointmentsPage({
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold md:text-4xl">Lịch hẹn</h1>
-        <p className="text-sm text-muted-foreground">{total} đơn</p>
+        <h1 className="text-3xl font-bold md:text-4xl">
+          {dictionary.adminNav.appointments}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {total} {isVi ? "đơn" : "orders"}
+        </p>
       </div>
 
       <div className="mt-6">
@@ -127,10 +136,14 @@ export default async function AdminAppointmentsPage({
         <Card className="mt-6">
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <p className="text-base font-semibold">
-              Không có lịch hẹn nào phù hợp.
+              {isVi
+                ? "Không có lịch hẹn nào phù hợp."
+                : "No appointments match the current filters."}
             </p>
             <p className="text-sm text-muted-foreground">
-              Thử thay đổi bộ lọc hoặc xoá tìm kiếm để xem toàn bộ.
+              {isVi
+                ? "Thử thay đổi bộ lọc hoặc xoá tìm kiếm để xem toàn bộ."
+                : "Change the filter or clear the search to view all appointments."}
             </p>
           </CardContent>
         </Card>
@@ -140,15 +153,15 @@ export default async function AdminAppointmentsPage({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Mã hẹn</TableHead>
-                  <TableHead>Khách</TableHead>
-                  <TableHead>SĐT</TableHead>
-                  <TableHead>Thiết bị</TableHead>
-                  <TableHead>Dịch vụ</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead>Ngày tạo</TableHead>
+                  <TableHead>{dictionary.common.code}</TableHead>
+                  <TableHead>{dictionary.common.customer}</TableHead>
+                  <TableHead>{dictionary.common.phone}</TableHead>
+                  <TableHead>{dictionary.common.device}</TableHead>
+                  <TableHead>{dictionary.common.service}</TableHead>
+                  <TableHead>{dictionary.common.status}</TableHead>
+                  <TableHead>{isVi ? "Ngày tạo" : "Created"}</TableHead>
                   <TableHead className="w-[100px]">
-                    <span className="sr-only">Chi tiết</span>
+                    <span className="sr-only">{dictionary.common.detail}</span>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -166,7 +179,7 @@ export default async function AdminAppointmentsPage({
                             variant="outline"
                             className="w-fit text-[10px] uppercase"
                           >
-                            Khách lẻ
+                            {isVi ? "Khách lẻ" : "Guest"}
                           </Badge>
                         ) : null}
                       </div>
@@ -174,25 +187,28 @@ export default async function AdminAppointmentsPage({
                     <TableCell className="font-mono text-sm">
                       {appt.phone}
                     </TableCell>
-                    <TableCell>{DEVICE_TYPE_LABEL[appt.deviceType]}</TableCell>
+                    <TableCell>
+                      {dictionary.labels.deviceType[appt.deviceType]}
+                    </TableCell>
                     <TableCell className="max-w-[180px] truncate">
-                      {appt.serviceGroup}
+                      {getServiceGroupLabel(appt.serviceGroup, locale)}
                     </TableCell>
                     <TableCell>
                       <Badge variant={APPOINTMENT_STATUS_VARIANT[appt.status]}>
-                        {APPOINTMENT_STATUS_LABEL[appt.status]}
+                        {dictionary.labels.appointmentStatus[appt.status] ??
+                          APPOINTMENT_STATUS_LABEL[appt.status]}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {formatDateVi(appt.createdAt)}
+                      {formatDateByLocale(appt.createdAt, locale)}
                     </TableCell>
                     <TableCell>
                       <Button asChild variant="ghost" size="sm">
                         <Link
                           href={`/admin/appointments/${appt.appointmentCode}`}
-                          aria-label={`Xem chi tiết ${appt.appointmentCode}`}
+                          aria-label={`${dictionary.common.detail} ${appt.appointmentCode}`}
                         >
-                          Chi tiết
+                          {dictionary.common.detail}
                           <ChevronRight className="size-4" />
                         </Link>
                       </Button>
@@ -215,7 +231,8 @@ export default async function AdminAppointmentsPage({
                     {appt.appointmentCode}
                   </p>
                   <Badge variant={APPOINTMENT_STATUS_VARIANT[appt.status]}>
-                    {APPOINTMENT_STATUS_LABEL[appt.status]}
+                    {dictionary.labels.appointmentStatus[appt.status] ??
+                      APPOINTMENT_STATUS_LABEL[appt.status]}
                   </Badge>
                 </div>
                 <div className="mt-3 space-y-1 text-sm">
@@ -226,7 +243,7 @@ export default async function AdminAppointmentsPage({
                         variant="outline"
                         className="text-[10px] uppercase"
                       >
-                        Khách lẻ
+                        {isVi ? "Khách lẻ" : "Guest"}
                       </Badge>
                     ) : null}
                   </div>
@@ -234,15 +251,16 @@ export default async function AdminAppointmentsPage({
                     {appt.phone}
                   </p>
                   <p className="text-muted-foreground">
-                    {DEVICE_TYPE_LABEL[appt.deviceType]} · {appt.serviceGroup}
+                    {dictionary.labels.deviceType[appt.deviceType]} ·{" "}
+                    {getServiceGroupLabel(appt.serviceGroup, locale)}
                   </p>
                 </div>
                 <div className="mt-3 flex items-center justify-between">
                   <p className="text-xs text-muted-foreground">
-                    {formatDateVi(appt.createdAt)}
+                    {formatDateByLocale(appt.createdAt, locale)}
                   </p>
                   <span className="inline-flex items-center text-sm font-medium text-primary">
-                    Chi tiết
+                    {dictionary.common.detail}
                     <ChevronRight className="ml-1 size-4" />
                   </span>
                 </div>
@@ -255,7 +273,7 @@ export default async function AdminAppointmentsPage({
       {totalPages > 1 ? (
         <div className="mt-6 flex flex-col items-center justify-between gap-3 sm:flex-row">
           <p className="text-sm text-muted-foreground">
-            Trang {page} / {totalPages}
+            {isVi ? "Trang" : "Page"} {page} / {totalPages}
           </p>
           <div className="flex gap-2">
             <Button
@@ -265,9 +283,11 @@ export default async function AdminAppointmentsPage({
               disabled={page <= 1}
             >
               {page > 1 ? (
-                <Link href={pageHref(page - 1)}>Trước</Link>
+                <Link href={pageHref(page - 1)}>
+                  {isVi ? "Trước" : "Previous"}
+                </Link>
               ) : (
-                <span>Trước</span>
+                <span>{isVi ? "Trước" : "Previous"}</span>
               )}
             </Button>
             <Button
@@ -277,9 +297,11 @@ export default async function AdminAppointmentsPage({
               disabled={page >= totalPages}
             >
               {page < totalPages ? (
-                <Link href={pageHref(page + 1)}>Sau</Link>
+                <Link href={pageHref(page + 1)}>
+                  {isVi ? "Sau" : "Next"}
+                </Link>
               ) : (
-                <span>Sau</span>
+                <span>{isVi ? "Sau" : "Next"}</span>
               )}
             </Button>
           </div>

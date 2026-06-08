@@ -8,6 +8,7 @@ import { parts } from "@/db/schema";
 import { PartsExplorer } from "@/components/features/parts-explorer";
 import { GridBackdrop } from "@/components/marketing/grid-backdrop";
 import { ScrollReveal } from "@/components/features/home/scroll-reveal";
+import { getLocale } from "@/lib/i18n-server";
 
 export const metadata: Metadata = {
   title: "Linh kiện",
@@ -29,6 +30,8 @@ const getParts = unstable_cache(
 );
 
 export default async function PartsPage() {
+  const locale = await getLocale();
+  const isVi = locale === "vi";
   const items = await getParts();
 
   return (
@@ -36,7 +39,7 @@ export default async function PartsPage() {
       <ScrollReveal />
 
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-white/5 bg-background py-20 md:py-28">
+      <section className="relative overflow-hidden border-b border-border bg-background py-20 md:py-28">
         <GridBackdrop />
         <div aria-hidden className="absolute right-[12%] top-0 h-72 w-72 rounded-full bg-tertiary/10 blur-[140px]" />
         <div aria-hidden className="absolute -bottom-10 left-[8%] h-72 w-96 rounded-full bg-secondary/10 blur-[150px]" />
@@ -46,19 +49,24 @@ export default async function PartsPage() {
               &gt; PARTS_CATALOG
             </p>
             <h1 className="text-display-lg-mobile text-on-surface md:text-display-lg">
-              Tra cứu <span className="text-gradient">linh kiện</span>
+              {isVi ? "Tra cứu" : "Browse"}{" "}
+              <span className="text-gradient">
+                {isVi ? "linh kiện" : "parts"}
+              </span>
             </h1>
             <p className="mt-6 max-w-xl text-body-lg text-on-surface-variant">
-              Giá tham khảo RAM, SSD, HDD, pin, phụ kiện kèm thời gian bảo hành.
-              Tìm kiếm theo tên hoặc lọc nhanh theo loại.
+              {isVi
+                ? "Giá tham khảo RAM, SSD, HDD, pin, phụ kiện kèm thời gian bảo hành. Tìm kiếm theo tên hoặc lọc nhanh theo loại."
+                : "Reference pricing for RAM, SSD, HDD, batteries, and accessories with warranty notes. Search by name or filter by type."}
             </p>
           </div>
 
           <div className="fade-in-up stagger-1 mt-8 flex max-w-3xl items-start gap-3 rounded-2xl border border-secondary/20 bg-secondary/5 p-4 md:p-5">
             <Info className="mt-0.5 size-5 shrink-0 text-secondary" aria-hidden="true" />
             <p className="text-body-md text-on-surface-variant">
-              Giá thị trường thay đổi liên tục — vui lòng liên hệ để xác nhận giá
-              tại thời điểm sửa chữa.
+              {isVi
+                ? "Giá thị trường thay đổi liên tục - vui lòng liên hệ để xác nhận giá tại thời điểm sửa chữa."
+                : "Market prices change often - please contact us to confirm the current repair-time price."}
             </p>
           </div>
         </div>

@@ -3,12 +3,44 @@
 @tailwind utilities;
 
 /*
- * FixNow — Material Design 3 "tech-lab" dark theme.
- * Single dark scheme applied site-wide. Tokens are RGB triplets so Tailwind
- * alpha modifiers (bg-secondary/10, text-on-surface-variant, ...) keep working.
+ * FixNow — Material Design 3 "tech-lab" theme.
+ * Tokens are RGB triplets so Tailwind alpha modifiers
+ * (bg-secondary/10, text-on-surface-variant, ...) keep working.
  */
 @layer base {
-  :root,
+  :root {
+    --md-background: 248 250 252;
+    --md-surface: 255 255 255;
+    --md-surface-container-lowest: 255 255 255;
+    --md-surface-container-low: 241 245 249;
+    --md-surface-container: 226 232 240;
+    --md-surface-container-high: 241 245 249;
+    --md-surface-container-highest: 203 213 225;
+
+    --md-on-surface: 15 23 42;
+    --md-on-surface-variant: 71 85 105;
+
+    --md-primary: 0 90 194;
+    --md-on-primary: 255 255 255;
+    --md-secondary: 0 145 174;
+    --md-on-secondary: 255 255 255;
+    --md-tertiary: 111 76 255;
+    --md-on-tertiary: 255 255 255;
+
+    --md-outline: 100 116 139;
+    --md-outline-variant: 203 213 225;
+
+    --md-destructive: 186 26 26;
+    --md-on-destructive: 255 255 255;
+    --md-warning: 180 83 9;
+    --md-on-warning: 255 255 255;
+
+    --md-gradient-from: 0 90 194;
+    --md-gradient-to: 0 174 209;
+
+    --radius: 0.75rem;
+  }
+
   .dark {
     --md-background: 17 19 27;
     --md-surface: 17 19 27;
@@ -58,17 +90,28 @@
 /* Surfaces & effects (glassmorphism) */
 @layer components {
   .glass-panel {
-    background: rgb(var(--md-surface) / 0.4);
+    background: rgb(var(--md-surface) / 0.78);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgb(255 255 255 / 0.05);
-    box-shadow: 0 4px 30px rgb(0 0 0 / 0.1);
+    border: 1px solid rgb(var(--md-outline-variant) / 0.75);
+    box-shadow: 0 12px 36px rgb(15 23 42 / 0.08);
   }
   .glass-panel-heavy {
-    background: rgb(var(--md-surface-container-lowest) / 0.6);
+    background: rgb(var(--md-surface-container-lowest) / 0.86);
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
-    border: 1px solid rgb(255 255 255 / 0.08);
+    border: 1px solid rgb(var(--md-outline-variant) / 0.8);
+    box-shadow: 0 14px 40px rgb(15 23 42 / 0.1);
+  }
+  .dark .glass-panel {
+    background: rgb(var(--md-surface) / 0.4);
+    border-color: rgb(var(--md-outline-variant) / 0.3);
+    box-shadow: 0 4px 30px rgb(0 0 0 / 0.1);
+  }
+  .dark .glass-panel-heavy {
+    background: rgb(var(--md-surface-container-lowest) / 0.6);
+    border-color: rgb(var(--md-outline-variant) / 0.35);
+    box-shadow: none;
   }
   .text-gradient {
     background: linear-gradient(
@@ -198,7 +241,7 @@
   top: 0;
   bottom: 0;
   width: 2px;
-  background: rgb(255 255 255 / 0.1);
+  background: rgb(var(--md-outline-variant) / 0.6);
   transform: translateX(-50%);
   z-index: 0;
 }
@@ -218,7 +261,7 @@
   height: 16px;
   border-radius: 50%;
   background: rgb(var(--md-background));
-  border: 2px solid rgb(255 255 255 / 0.2);
+  border: 2px solid rgb(var(--md-outline-variant) / 0.8);
   transform: translate(-50%, -50%);
   z-index: 10;
 }

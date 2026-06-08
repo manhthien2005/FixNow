@@ -11,10 +11,11 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { DEVICE_TYPE_LABEL } from "@/lib/labels";
+import { getServiceGroupLabel } from "@/lib/labels";
 import { DEVICE_ICON, STATUS_UI } from "@/lib/appointment-ui";
-import { formatDateVi } from "@/lib/utils";
+import { formatDateByLocale } from "@/lib/utils";
 import type { AppointmentStatus, DeviceType } from "@/db/schema";
+import { useI18n } from "@/components/i18n/language-provider";
 
 // Plain serialisable shape passed from the server component.
 export type AppointmentListItem = {
@@ -40,6 +41,7 @@ export function MyAppointmentsList({
 }: {
   items: AppointmentListItem[];
 }) {
+  const { locale, dictionary } = useI18n();
   const [status, setStatus] = useState<StatusFilter>("ALL");
   const [sort, setSort] = useState<SortOrder>("newest");
 
@@ -61,10 +63,10 @@ export function MyAppointmentsList({
   }, [items, status, sort]);
 
   const FILTERS: { value: StatusFilter; label: string }[] = [
-    { value: "ALL", label: "Tất cả" },
+    { value: "ALL", label: dictionary.lists.all },
     ...STATUS_ORDER.filter((s) => counts[s]).map((s) => ({
       value: s,
-      label: STATUS_UI[s].label,
+      label: dictionary.labels.appointmentStatus[s],
     })),
   ];
 
@@ -74,7 +76,7 @@ export function MyAppointmentsList({
       <div className="fade-in-up flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div
           role="tablist"
-          aria-label="Lọc theo trạng thái"
+          aria-label={dictionary.lists.filterStatusAria}
           className="flex flex-wrap gap-2"
         >
           {FILTERS.map((f) => {
@@ -91,7 +93,7 @@ export function MyAppointmentsList({
                   "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 font-mono text-label-sm uppercase tracking-wider transition-colors",
                   active
                     ? "border-transparent bg-secondary text-on-secondary"
-                    : "border-white/10 bg-surface-container/40 text-on-surface-variant hover:border-secondary/40 hover:text-on-surface",
+                    : "border-border bg-surface-container/40 text-on-surface-variant hover:border-secondary/40 hover:text-on-surface",
                 )}
               >
                 {ui ? (
@@ -106,7 +108,7 @@ export function MyAppointmentsList({
                 <span
                   className={cn(
                     "rounded-full px-1.5 text-[11px]",
-                    active ? "bg-on-secondary/15" : "bg-white/5",
+                    active ? "bg-on-secondary/15" : "bg-surface-container-high",
                   )}
                 >
                   {counts[f.value] ?? 0}
@@ -119,29 +121,31 @@ export function MyAppointmentsList({
         <button
           type="button"
           onClick={() => setSort((s) => (s === "newest" ? "oldest" : "newest"))}
-          className="inline-flex min-h-11 w-max items-center gap-2 rounded-full border border-white/10 bg-surface-container/40 px-4 py-2 font-mono text-label-sm uppercase tracking-wider text-on-surface-variant transition-colors hover:border-secondary/40 hover:text-on-surface"
+          className="inline-flex min-h-11 w-max items-center gap-2 rounded-full border border-border bg-surface-container/40 px-4 py-2 font-mono text-label-sm uppercase tracking-wider text-on-surface-variant transition-colors hover:border-secondary/40 hover:text-on-surface"
         >
           {sort === "newest" ? (
             <ArrowDownWideNarrow className="size-4" aria-hidden="true" />
           ) : (
             <ArrowUpWideNarrow className="size-4" aria-hidden="true" />
           )}
-          {sort === "newest" ? "Mới nhất" : "Cũ nhất"}
+          {sort === "newest" ? dictionary.lists.newest : dictionary.lists.oldest}
         </button>
       </div>
 
       {/* Results */}
       <p className="font-mono text-label-sm uppercase tracking-wider text-on-surface-variant/70">
         {visible.length > 0
-          ? `${String(visible.length).padStart(2, "0")} lịch hẹn`
-          : "Không có kết quả"}
+          ? `${String(visible.length).padStart(2, "0")} ${
+              dictionary.lists.appointments
+            }`
+          : dictionary.common.noResults}
       </p>
 
       {visible.length === 0 ? (
         <div className="glass-panel flex flex-col items-center gap-3 rounded-2xl p-10 text-center">
           <CalendarX className="size-9 text-on-surface-variant" aria-hidden="true" />
           <p className="text-body-md text-on-surface-variant">
-            Không có lịch hẹn nào ở trạng thái này.
+            {dictionary.lists.noAppointments}
           </p>
         </div>
       ) : (
@@ -154,7 +158,7 @@ export function MyAppointmentsList({
               <Link
                 key={appt.appointmentCode}
                 href={`/my-appointments/${appt.appointmentCode}`}
-                className="glass-panel group relative overflow-hidden rounded-2xl p-5 transition-colors hover:border-white/20"
+                className="glass-panel group relative overflow-hidden rounded-2xl p-5 transition-colors hover:border-outline"
               >
                 <span
                   aria-hidden
@@ -163,7 +167,7 @@ export function MyAppointmentsList({
                 <div className="flex items-start justify-between gap-3 pl-2">
                   <div>
                     <p className="font-mono text-label-sm uppercase tracking-wider text-on-surface-variant/60">
-                      Mã hẹn
+                      {dictionary.lists.appointmentCode}
                     </p>
                     <p className="font-mono text-lg font-bold text-on-surface">
                       {appt.appointmentCode}
@@ -173,7 +177,7 @@ export function MyAppointmentsList({
                     className={`inline-flex shrink-0 items-center gap-1.5 rounded-full ${ui.bg} px-3 py-1 font-mono text-label-sm ${ui.text}`}
                   >
                     <StatusIcon className="size-3.5" aria-hidden="true" />
-                    {ui.label}
+                    {dictionary.labels.appointmentStatus[appt.status]}
                   </span>
                 </div>
 
@@ -182,10 +186,10 @@ export function MyAppointmentsList({
                     <DeviceIcon className="size-4 shrink-0 text-on-surface-variant" aria-hidden="true" />
                     <div className="min-w-0">
                       <p className="font-mono text-[11px] uppercase tracking-wider text-on-surface-variant/60">
-                        Thiết bị
+                        {dictionary.lists.device}
                       </p>
                       <p className="truncate text-body-md text-on-surface">
-                        {DEVICE_TYPE_LABEL[appt.deviceType]}
+                        {dictionary.labels.deviceType[appt.deviceType]}
                       </p>
                     </div>
                   </div>
@@ -193,21 +197,21 @@ export function MyAppointmentsList({
                     <Wrench className="size-4 shrink-0 text-on-surface-variant" aria-hidden="true" />
                     <div className="min-w-0">
                       <p className="font-mono text-[11px] uppercase tracking-wider text-on-surface-variant/60">
-                        Dịch vụ
+                        {dictionary.lists.service}
                       </p>
                       <p className="truncate text-body-md text-on-surface">
-                        {appt.serviceGroup}
+                        {getServiceGroupLabel(appt.serviceGroup, locale)}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between border-t border-white/5 pl-2 pt-3">
+                <div className="mt-4 flex items-center justify-between border-t border-border pl-2 pt-3">
                   <p className="font-mono text-label-sm text-on-surface-variant">
-                    {formatDateVi(appt.createdAt)}
+                    {formatDateByLocale(appt.createdAt, locale)}
                   </p>
                   <span className="inline-flex items-center gap-1 font-mono text-label-sm uppercase tracking-wider text-secondary transition-transform group-hover:translate-x-0.5">
-                    Chi tiết <ChevronRight className="size-4" />
+                    {dictionary.lists.detail} <ChevronRight className="size-4" />
                   </span>
                 </div>
               </Link>

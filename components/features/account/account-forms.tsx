@@ -8,6 +8,12 @@ import { KeyRound, Loader2, UserPen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  INPUT_LIMITS,
+  limitText,
+  normalizeSpaces,
+} from "@/lib/input-normalizers";
+import { useI18n } from "@/components/i18n/language-provider";
 
 interface AccountFormsProps {
   fullName: string;
@@ -16,6 +22,7 @@ interface AccountFormsProps {
 
 export function AccountForms({ fullName, email }: AccountFormsProps) {
   const router = useRouter();
+  const { dictionary, locale } = useI18n();
 
   // Profile
   const [name, setName] = useState(fullName);
@@ -35,17 +42,25 @@ export function AccountForms({ fullName, email }: AccountFormsProps) {
       const res = await fetch("/api/account", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName: name.trim(), email: mail.trim() }),
+        body: JSON.stringify({
+          fullName: normalizeSpaces(name),
+          email: mail.trim().toLowerCase(),
+        }),
       });
       const data = (await res.json()) as { message?: string };
       if (!res.ok) {
-        toast.error(data.message ?? "Cập nhật thất bại.");
+        toast.error(
+          data.message ??
+            (locale === "vi" ? "Cập nhật thất bại." : "Update failed."),
+        );
         return;
       }
-      toast.success("Đã cập nhật thông tin.");
+      toast.success(
+        locale === "vi" ? "Đã cập nhật thông tin." : "Profile updated.",
+      );
       router.refresh();
     } catch {
-      toast.error("Lỗi mạng, vui lòng thử lại.");
+      toast.error(dictionary.auth.networkError);
     } finally {
       setSavingProfile(false);
     }
@@ -54,11 +69,19 @@ export function AccountForms({ fullName, email }: AccountFormsProps) {
   async function changePassword(e: React.FormEvent) {
     e.preventDefault();
     if (next.length < 6) {
-      toast.error("Mật khẩu mới ít nhất 6 ký tự.");
+      toast.error(
+        locale === "vi"
+          ? "Mật khẩu mới ít nhất 6 ký tự."
+          : "New password must be at least 6 characters.",
+      );
       return;
     }
     if (next !== confirm) {
-      toast.error("Mật khẩu xác nhận không khớp.");
+      toast.error(
+        locale === "vi"
+          ? "Mật khẩu xác nhận không khớp."
+          : "Password confirmation does not match.",
+      );
       return;
     }
     setSavingPw(true);
@@ -74,15 +97,22 @@ export function AccountForms({ fullName, email }: AccountFormsProps) {
       });
       const data = (await res.json()) as { message?: string };
       if (!res.ok) {
-        toast.error(data.message ?? "Đổi mật khẩu thất bại.");
+        toast.error(
+          data.message ??
+            (locale === "vi"
+              ? "Đổi mật khẩu thất bại."
+              : "Could not change password."),
+        );
         return;
       }
-      toast.success("Đã đổi mật khẩu.");
+      toast.success(
+        locale === "vi" ? "Đã đổi mật khẩu." : "Password changed.",
+      );
       setCurrent("");
       setNext("");
       setConfirm("");
     } catch {
-      toast.error("Lỗi mạng, vui lòng thử lại.");
+      toast.error(dictionary.auth.networkError);
     } finally {
       setSavingPw(false);
     }
@@ -96,41 +126,49 @@ export function AccountForms({ fullName, email }: AccountFormsProps) {
         className="glass-panel flex flex-col gap-5 rounded-2xl p-6 md:p-8"
       >
         <div className="flex items-center gap-3">
-          <span className="flex size-11 items-center justify-center rounded-xl border border-white/10 bg-surface-container-high/50 text-secondary">
+          <span className="flex size-11 items-center justify-center rounded-xl border border-border bg-surface-container-high/50 text-secondary">
             <UserPen className="size-5" aria-hidden="true" />
           </span>
-          <h2 className="text-headline-sm text-on-surface">Thông tin cá nhân</h2>
+          <h2 className="text-headline-sm text-on-surface">
+            {locale === "vi" ? "Thông tin cá nhân" : "Personal information"}
+          </h2>
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="acc-name">Họ và tên</Label>
+          <Label htmlFor="acc-name">{dictionary.common.fullName}</Label>
           <Input
             id="acc-name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => setName(limitText(e.target.value, INPUT_LIMITS.name))}
+            onBlur={(e) => setName(normalizeSpaces(e.target.value))}
             className="h-11 text-base"
             autoComplete="name"
+            maxLength={INPUT_LIMITS.name}
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="acc-email">Email</Label>
+          <Label htmlFor="acc-email">{dictionary.common.email}</Label>
           <Input
             id="acc-email"
             type="email"
             value={mail}
-            onChange={(e) => setMail(e.target.value)}
+            onChange={(e) => setMail(limitText(e.target.value, INPUT_LIMITS.email))}
+            onBlur={(e) => setMail(e.target.value.trim().toLowerCase())}
             placeholder="email@example.com"
             className="h-11 text-base"
             autoComplete="email"
+            maxLength={INPUT_LIMITS.email}
           />
           <p className="text-xs text-on-surface-variant">
-            Email dùng để đăng nhập và khôi phục mật khẩu.
+            {locale === "vi"
+              ? "Email dùng để đăng nhập và khôi phục mật khẩu."
+              : "Email is used for login and password recovery."}
           </p>
         </div>
 
         <Button type="submit" disabled={savingProfile} className="mt-auto h-11 w-full">
           {savingProfile ? <Loader2 className="size-4 animate-spin" /> : null}
-          Lưu thay đổi
+          {savingProfile ? dictionary.common.saving : dictionary.common.save}
         </Button>
       </form>
 
@@ -140,49 +178,68 @@ export function AccountForms({ fullName, email }: AccountFormsProps) {
         className="glass-panel flex flex-col gap-5 rounded-2xl p-6 md:p-8"
       >
         <div className="flex items-center gap-3">
-          <span className="flex size-11 items-center justify-center rounded-xl border border-white/10 bg-surface-container-high/50 text-secondary">
+          <span className="flex size-11 items-center justify-center rounded-xl border border-border bg-surface-container-high/50 text-secondary">
             <KeyRound className="size-5" aria-hidden="true" />
           </span>
-          <h2 className="text-headline-sm text-on-surface">Đổi mật khẩu</h2>
+          <h2 className="text-headline-sm text-on-surface">
+            {locale === "vi" ? "Đổi mật khẩu" : "Change password"}
+          </h2>
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="pw-current">Mật khẩu hiện tại</Label>
+          <Label htmlFor="pw-current">
+            {locale === "vi" ? "Mật khẩu hiện tại" : "Current password"}
+          </Label>
           <Input
             id="pw-current"
             type="password"
             value={current}
-            onChange={(e) => setCurrent(e.target.value)}
+            onChange={(e) =>
+              setCurrent(limitText(e.target.value, INPUT_LIMITS.password))
+            }
             className="h-11 text-base"
             autoComplete="current-password"
+            maxLength={INPUT_LIMITS.password}
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="pw-new">Mật khẩu mới</Label>
+          <Label htmlFor="pw-new">{dictionary.auth.newPassword}</Label>
           <Input
             id="pw-new"
             type="password"
             value={next}
-            onChange={(e) => setNext(e.target.value)}
+            onChange={(e) =>
+              setNext(limitText(e.target.value, INPUT_LIMITS.password))
+            }
             className="h-11 text-base"
             autoComplete="new-password"
+            maxLength={INPUT_LIMITS.password}
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="pw-confirm">Xác nhận mật khẩu mới</Label>
+          <Label htmlFor="pw-confirm">
+            {dictionary.auth.confirmNewPassword}
+          </Label>
           <Input
             id="pw-confirm"
             type="password"
             value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
+            onChange={(e) =>
+              setConfirm(limitText(e.target.value, INPUT_LIMITS.password))
+            }
             className="h-11 text-base"
             autoComplete="new-password"
+            maxLength={INPUT_LIMITS.password}
           />
         </div>
 
         <Button type="submit" disabled={savingPw} className="mt-auto h-11 w-full">
           {savingPw ? <Loader2 className="size-4 animate-spin" /> : null}
-          Đổi mật khẩu
+          {savingPw
+            ? dictionary.common.processing
+            : locale === "vi"
+              ? "Đổi mật khẩu"
+              : "Change password"}
         </Button>
       </form>
     </div>

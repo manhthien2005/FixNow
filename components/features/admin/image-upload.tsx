@@ -6,6 +6,7 @@ import { ImagePlus, Loader2, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { publicImageUrl } from "@/lib/images";
+import { useI18n } from "@/components/i18n/language-provider";
 
 interface ImageUploadProps {
   folder: "parts" | "services";
@@ -25,6 +26,8 @@ export function ImageUpload({
   onChange,
   fallbackSrc,
 }: ImageUploadProps) {
+  const { locale } = useI18n();
+  const isVi = locale === "vi";
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,12 +44,16 @@ export function ImageUpload({
       const res = await fetch("/api/admin/upload", { method: "POST", body });
       const data = (await res.json()) as { path?: string; message?: string };
       if (!res.ok || !data.path) {
-        setError(data.message ?? "Tải ảnh thất bại.");
+        setError(
+          data.message ?? (isVi ? "Tải ảnh thất bại." : "Image upload failed."),
+        );
         return;
       }
       onChange(data.path);
     } catch {
-      setError("Lỗi mạng khi tải ảnh.");
+      setError(
+        isVi ? "Lỗi mạng khi tải ảnh." : "Network error while uploading.",
+      );
     } finally {
       setUploading(false);
     }
@@ -56,14 +63,14 @@ export function ImageUpload({
     <div className="space-y-2">
       <div
         className={cn(
-          "relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-white/15 bg-surface-container/40",
+          "relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-border bg-surface-container/40",
           uploading && "opacity-60",
         )}
       >
         {preview ? (
           <Image
             src={preview}
-            alt="Xem trước ảnh"
+            alt={isVi ? "Xem trước ảnh" : "Image preview"}
             fill
             sizes="(min-width: 768px) 24rem, 90vw"
             className="object-cover"
@@ -71,7 +78,9 @@ export function ImageUpload({
         ) : (
           <div className="flex flex-col items-center gap-2 text-on-surface-variant">
             <ImagePlus className="size-8" aria-hidden="true" />
-            <span className="text-sm">Chưa có ảnh</span>
+            <span className="text-sm">
+              {isVi ? "Chưa có ảnh" : "No image yet"}
+            </span>
           </div>
         )}
 
@@ -85,7 +94,7 @@ export function ImageUpload({
           <button
             type="button"
             onClick={() => onChange(null)}
-            aria-label="Xóa ảnh"
+            aria-label={isVi ? "Xóa ảnh" : "Remove image"}
             className="absolute right-2 top-2 z-10 flex size-8 items-center justify-center rounded-full bg-surface-container-lowest/80 text-on-surface backdrop-blur transition-colors hover:text-destructive"
           >
             <X className="size-4" />
@@ -98,13 +107,19 @@ export function ImageUpload({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-surface-container/50 px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface-container/50 px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-50"
         >
           <ImagePlus className="size-4" />
-          {value ? "Đổi ảnh" : "Tải ảnh lên"}
+          {value
+            ? isVi
+              ? "Đổi ảnh"
+              : "Change image"
+            : isVi
+              ? "Tải ảnh lên"
+              : "Upload image"}
         </button>
         <span className="text-xs text-on-surface-variant">
-          JPG / PNG / WEBP, tối đa 4MB
+          {isVi ? "JPG / PNG / WEBP, tối đa 4MB" : "JPG / PNG / WEBP, max 4MB"}
         </span>
       </div>
 

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { partTypeEnum } from "@/db/schema";
+import { normalizeSpaces } from "@/lib/input-normalizers";
 
 const PART_TYPES = partTypeEnum.enumValues;
 
@@ -11,7 +12,7 @@ const optionalText = (max: number) =>
     .max(max)
     .optional()
     .nullable()
-    .transform((v) => (v ? v : null));
+    .transform((v) => (v ? normalizeSpaces(v) : null));
 
 const imagePath = z
   .string()
@@ -42,8 +43,18 @@ export const publicPartsQuerySchema = z.object({
 
 export const partCreateSchema = z.object({
   type: z.enum(PART_TYPES),
-  name: z.string().trim().min(2, "Tên linh kiện tối thiểu 2 ký tự").max(150),
-  price: z.string().trim().min(1, "Bắt buộc nhập giá").max(50),
+  name: z
+    .string()
+    .trim()
+    .min(2, "Tên linh kiện tối thiểu 2 ký tự")
+    .max(150)
+    .transform(normalizeSpaces),
+  price: z
+    .string()
+    .trim()
+    .min(1, "Bắt buộc nhập giá")
+    .max(50)
+    .transform(normalizeSpaces),
   warranty: optionalText(50),
   note: optionalText(255),
   imagePath,
@@ -54,8 +65,18 @@ export const partCreateSchema = z.object({
 export const partUpdateSchema = partCreateSchema.partial();
 
 export const servicePriceCreateSchema = z.object({
-  serviceName: z.string().trim().min(2, "Tên dịch vụ tối thiểu 2 ký tự").max(150),
-  priceFrom: z.string().trim().min(1, "Bắt buộc nhập giá").max(50),
+  serviceName: z
+    .string()
+    .trim()
+    .min(2, "Tên dịch vụ tối thiểu 2 ký tự")
+    .max(150)
+    .transform(normalizeSpaces),
+  priceFrom: z
+    .string()
+    .trim()
+    .min(1, "Bắt buộc nhập giá")
+    .max(50)
+    .transform(normalizeSpaces),
   note: optionalText(255),
   imagePath,
   isActive: z.boolean().default(true),

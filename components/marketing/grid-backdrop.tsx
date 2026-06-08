@@ -2,11 +2,11 @@ import { cn } from "@/lib/utils";
 
 const GRID_LINES: React.CSSProperties = {
   backgroundImage:
-    "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
+    "linear-gradient(rgb(var(--md-outline-variant) / 0.35) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--md-outline-variant) / 0.35) 1px, transparent 1px)",
   backgroundSize: "56px 56px",
 };
 
-/** Faint white line-grid backdrop with a vertical fade, to lift content. */
+/** Faint line-grid backdrop with a vertical fade, to lift content. */
 export function GridBackdrop({ className }: { className?: string }) {
   return (
     <div

@@ -8,6 +8,8 @@ import { db } from "@/db";
 import { appointments } from "@/db/schema";
 import { STATUS_UI } from "@/lib/appointment-ui";
 import { GridBackdrop } from "@/components/marketing/grid-backdrop";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 export const metadata: Metadata = {
   title: "Tra cứu lịch hẹn",
@@ -20,6 +22,8 @@ interface TrackPageProps {
 }
 
 export default async function TrackPage({ searchParams }: TrackPageProps) {
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
   const { phone, code } = await searchParams;
   const hasQuery = Boolean(phone && code);
 
@@ -50,7 +54,7 @@ export default async function TrackPage({ searchParams }: TrackPageProps) {
   return (
     <>
       {/* Header */}
-      <section className="relative overflow-hidden border-b border-white/5 bg-background py-16 md:py-20">
+      <section className="relative overflow-hidden border-b border-border bg-background py-16 md:py-20">
         <GridBackdrop />
         <div aria-hidden className="absolute right-[12%] top-0 h-64 w-64 rounded-full bg-secondary/10 blur-[130px]" />
         <div className="relative mx-auto max-w-3xl px-margin-mobile md:px-margin-desktop">
@@ -58,11 +62,10 @@ export default async function TrackPage({ searchParams }: TrackPageProps) {
             &gt; TRACK_ORDER
           </p>
           <h1 className="text-display-lg-mobile text-on-surface">
-            Tra cứu lịch hẹn
+            {dictionary.track.pageTitle}
           </h1>
           <p className="mt-3 max-w-xl text-body-md text-on-surface-variant">
-            Nhập số điện thoại và mã lịch hẹn (FN-YYYY-XXXX) để xem trạng thái xử
-            lý — không cần đăng nhập.
+            {dictionary.track.pageSubtitle}
           </p>
         </div>
       </section>
@@ -77,11 +80,10 @@ export default async function TrackPage({ searchParams }: TrackPageProps) {
               <AlertCircle className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden="true" />
               <div>
                 <p className="font-semibold text-on-surface">
-                  Không tìm thấy lịch hẹn
+                  {dictionary.track.notFoundTitle}
                 </p>
                 <p className="mt-1 text-body-md text-on-surface-variant">
-                  Không có lịch hẹn khớp với SĐT và mã đã nhập. Vui lòng kiểm tra
-                  lại.
+                  {dictionary.track.notFoundText}
                 </p>
               </div>
             </div>
@@ -92,7 +94,7 @@ export default async function TrackPage({ searchParams }: TrackPageProps) {
               <div className="glass-panel flex items-center justify-between gap-3 rounded-2xl p-5">
                 <div>
                   <p className="font-mono text-label-sm uppercase tracking-wider text-on-surface-variant/60">
-                    Mã lịch hẹn
+                    {dictionary.track.code}
                   </p>
                   <p className="font-mono text-headline-sm font-bold text-on-surface">
                     {appt.appointmentCode}
@@ -102,7 +104,7 @@ export default async function TrackPage({ searchParams }: TrackPageProps) {
                   className={`inline-flex w-max items-center gap-2 rounded-full border ${ui.border} ${ui.bg} px-4 py-2 font-mono text-label-md ${ui.text}`}
                 >
                   <ui.icon className="size-4" aria-hidden="true" />
-                  {ui.label}
+                  {dictionary.labels.appointmentStatus[appt.status]}
                 </span>
               </div>
               <AppointmentDetail appt={appt} />

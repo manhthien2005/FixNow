@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 /**
- * FixNow design system — Material Design 3 "tech-lab" dark theme.
+ * FixNow design system — Material Design 3 "tech-lab" theme.
  * Colors are single-source-of-truth CSS variables (RGB triplets) defined in
  * app/globals.css, exposed here so Tailwind opacity modifiers (e.g. bg-secondary/10)
  * keep working. shadcn semantic names (background/foreground/card/primary/...) are
@@ -42,15 +42,15 @@ const config: Config = {
         // MD3 type scale used across the landing page
         "display-lg": [
           "64px",
-          { lineHeight: "72px", letterSpacing: "-0.02em", fontWeight: "800" },
+          { lineHeight: "72px", letterSpacing: "0", fontWeight: "800" },
         ],
         "display-lg-mobile": [
           "40px",
-          { lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "800" },
+          { lineHeight: "48px", letterSpacing: "0", fontWeight: "800" },
         ],
         "headline-md": [
           "30px",
-          { lineHeight: "38px", letterSpacing: "-0.01em", fontWeight: "600" },
+          { lineHeight: "38px", letterSpacing: "0", fontWeight: "600" },
         ],
         "headline-sm": ["24px", { lineHeight: "32px", fontWeight: "600" }],
         "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],

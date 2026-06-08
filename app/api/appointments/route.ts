@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { appointments } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { adminListFilterSchema } from "@/lib/validations/admin";
-import { bookingSchema } from "@/lib/validations/booking";
+import { bookingApiSchema } from "@/lib/validations/booking";
 
 const MAX_CODE_RETRY = 5;
 
@@ -20,14 +20,14 @@ export async function POST(req: NextRequest) {
   try {
     const body: unknown = await req.json();
 
-    // bookingSchema marks preferredTime as ISO-datetime OR literal "" OR undefined.
+    // bookingApiSchema marks preferredTime as ISO-datetime OR literal "" OR undefined.
     // Normalize "" → undefined so downstream code only deals with two cases.
     let normalized: unknown = body;
     if (isRecord(body) && body.preferredTime === "") {
       normalized = { ...body, preferredTime: undefined };
     }
 
-    const parsed = bookingSchema.safeParse(normalized);
+    const parsed = bookingApiSchema.safeParse(normalized);
     if (!parsed.success) {
       return NextResponse.json(
         { error: "validation", details: parsed.error.flatten() },

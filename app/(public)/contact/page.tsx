@@ -14,6 +14,7 @@ import {
 import { SITE, mapEmbedSrc, mapDirectionsHref } from "@/lib/site";
 import { GridBackdrop } from "@/components/marketing/grid-backdrop";
 import { ScrollReveal } from "@/components/features/home/scroll-reveal";
+import { getLocale } from "@/lib/i18n-server";
 
 export const metadata: Metadata = {
   title: "Liên hệ",
@@ -41,13 +42,20 @@ const METHODS: {
   { icon: Mail, label: "Email", value: SITE.email.label, href: SITE.email.href, accent: "tertiary" },
 ];
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const locale = await getLocale();
+  const isVi = locale === "vi";
+  const hours = isVi ? SITE.hours : "8:00 AM - 8:00 PM daily";
+  const serviceRadius = isVi
+    ? SITE.serviceRadius
+    : "3-5km radius within central HCMC";
+
   return (
     <>
       <ScrollReveal />
 
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-white/5 bg-background py-20 md:py-28">
+      <section className="relative overflow-hidden border-b border-border bg-background py-20 md:py-28">
         <GridBackdrop />
         <div aria-hidden className="absolute right-[12%] top-0 h-72 w-72 rounded-full bg-secondary/10 blur-[140px]" />
         <div aria-hidden className="absolute -bottom-10 left-[8%] h-72 w-96 rounded-full bg-primary/10 blur-[150px]" />
@@ -57,11 +65,13 @@ export default function ContactPage() {
               &gt; CONTACT
             </p>
             <h1 className="text-display-lg-mobile text-on-surface md:text-display-lg">
-              Kết nối với <span className="text-gradient">FixNow</span>
+              {isVi ? "Kết nối với" : "Contact"}{" "}
+              <span className="text-gradient">FixNow</span>
             </h1>
             <p className="mt-6 max-w-xl text-body-lg text-on-surface-variant">
-              Gọi hotline, nhắn Zalo hoặc email — chúng tôi luôn sẵn sàng hỗ trợ
-              kỹ thuật trong giờ làm việc.
+              {isVi
+                ? "Gọi hotline, nhắn Zalo hoặc email - chúng tôi luôn sẵn sàng hỗ trợ kỹ thuật trong giờ làm việc."
+                : "Call the hotline, message Zalo, or send an email. FixNow is ready to support technical issues during working hours."}
             </p>
           </div>
         </div>
@@ -78,9 +88,9 @@ export default function ContactPage() {
                 href={href}
                 target={href.startsWith("http") ? "_blank" : undefined}
                 rel={href.startsWith("http") ? "noreferrer" : undefined}
-                className={`glass-panel fade-in-up stagger-${i % 4} group flex items-center gap-4 rounded-2xl p-5 transition-colors hover:border-white/20`}
+                className={`glass-panel fade-in-up stagger-${i % 4} group flex items-center gap-4 rounded-2xl p-5 transition-colors hover:border-outline`}
               >
-                <span className={`flex size-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-surface-container-high/50 ${TILE[accent]}`}>
+                <span className={`flex size-12 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-container-high/50 ${TILE[accent]}`}>
                   <Icon className="size-6" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -97,24 +107,28 @@ export default function ContactPage() {
 
             <div className="glass-panel fade-in-up stagger-2 rounded-2xl p-6">
               <div className="flex items-start gap-4">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-surface-container-high/50 text-secondary">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-container-high/50 text-secondary">
                   <MapPin className="size-5" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="text-label-md font-bold text-on-surface">Địa chỉ</p>
+                  <p className="text-label-md font-bold text-on-surface">
+                    {isVi ? "Địa chỉ" : "Address"}
+                  </p>
                   <p className="mt-1 text-body-md text-on-surface-variant">
                     {SITE.address}
                   </p>
                 </div>
               </div>
               <div className="mt-5 flex items-start gap-4">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-surface-container-high/50 text-secondary">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-container-high/50 text-secondary">
                   <Clock className="size-5" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="text-label-md font-bold text-on-surface">Giờ làm việc</p>
+                  <p className="text-label-md font-bold text-on-surface">
+                    {isVi ? "Giờ làm việc" : "Working hours"}
+                  </p>
                   <p className="mt-1 text-body-md text-on-surface-variant">
-                    {SITE.hours} · {SITE.serviceRadius}
+                    {hours} · {serviceRadius}
                   </p>
                 </div>
               </div>
@@ -125,7 +139,7 @@ export default function ContactPage() {
           <div className="fade-in-up stagger-1 flex flex-col gap-4">
             <div className="glass-panel-heavy relative h-[380px] overflow-hidden rounded-2xl p-2 md:h-full md:min-h-[460px]">
               <iframe
-                title={`Bản đồ FixNow — ${SITE.address}`}
+                title={`${isVi ? "Bản đồ" : "Map"} FixNow - ${SITE.address}`}
                 src={mapEmbedSrc()}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
@@ -140,27 +154,31 @@ export default function ContactPage() {
               className="btn-gradient glow-cta inline-flex items-center justify-center gap-2 rounded-xl px-7 py-4 font-mono text-label-md font-bold uppercase tracking-wider text-white"
             >
               <Navigation className="size-5" />
-              Chỉ đường tới FixNow
+              {isVi ? "Chỉ đường tới FixNow" : "Directions to FixNow"}
             </a>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="relative overflow-hidden border-t border-white/5 bg-surface-container-lowest py-16">
+      <section className="relative overflow-hidden border-t border-border bg-surface-container-lowest py-16">
         <div className="relative mx-auto flex max-w-container-max flex-col items-center justify-between gap-6 px-margin-mobile text-center md:flex-row md:px-margin-desktop md:text-left">
           <div>
-            <h2 className="text-headline-sm text-on-surface">Cần sửa máy ngay?</h2>
+            <h2 className="text-headline-sm text-on-surface">
+              {isVi ? "Cần sửa máy ngay?" : "Need a repair now?"}
+            </h2>
             <p className="mt-2 text-body-md text-on-surface-variant">
-              Đặt lịch online, kỹ thuật viên FixNow sẽ liên hệ xác nhận trong giờ
-              làm việc.
+              {isVi
+                ? "Đặt lịch online, kỹ thuật viên FixNow sẽ liên hệ xác nhận trong giờ làm việc."
+                : "Book online and a FixNow technician will contact you during working hours to confirm."}
             </p>
           </div>
           <Link
             href="/booking"
             className="btn-gradient glow-cta inline-flex items-center justify-center gap-2 rounded-xl px-9 py-4 font-mono text-label-md font-bold uppercase tracking-wider text-white"
           >
-            Đặt lịch ngay <ArrowRight className="size-5" />
+            {isVi ? "Đặt lịch ngay" : "Book now"}{" "}
+            <ArrowRight className="size-5" />
           </Link>
         </div>
       </section>

@@ -6,15 +6,7 @@ import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { SheetClose } from "@/components/ui/sheet";
-
-export const NAV_ITEMS = [
-  { href: "/", label: "Trang chủ" },
-  { href: "/services", label: "Dịch vụ" },
-  { href: "/pricing", label: "Bảng giá" },
-  { href: "/parts", label: "Linh kiện" },
-  { href: "/contact", label: "Liên hệ" },
-  { href: "/track", label: "Tra cứu" },
-] as const;
+import { useI18n } from "@/components/i18n/language-provider";
 
 interface NavLinksProps {
   variant?: "desktop" | "mobile";
@@ -23,10 +15,11 @@ interface NavLinksProps {
 
 export function NavLinks({ variant = "desktop", className }: NavLinksProps) {
   const pathname = usePathname();
+  const { dictionary } = useI18n();
 
   return (
     <nav className={className}>
-      {NAV_ITEMS.map((item) => {
+      {dictionary.nav.items.map((item) => {
         const active =
           item.href === "/"
             ? pathname === "/"

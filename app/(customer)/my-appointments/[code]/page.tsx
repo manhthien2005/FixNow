@@ -11,6 +11,8 @@ import { appointments } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { STATUS_UI } from "@/lib/appointment-ui";
 import { GridBackdrop } from "@/components/marketing/grid-backdrop";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 interface AppointmentDetailPageProps {
   params: Promise<{ code: string }>;
@@ -30,6 +32,9 @@ export default async function AppointmentDetailPage({
   params,
 }: AppointmentDetailPageProps) {
   const { code } = await params;
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
+  const isVi = locale === "vi";
   const session = await auth();
   if (!session?.user?.id) notFound();
 
@@ -62,7 +67,7 @@ export default async function AppointmentDetailPage({
   return (
     <>
       {/* Header */}
-      <section className="relative overflow-hidden border-b border-white/5 bg-background py-12 md:py-16">
+      <section className="relative overflow-hidden border-b border-border bg-background py-12 md:py-16">
         <GridBackdrop />
         <div aria-hidden className={`absolute right-[12%] top-0 h-56 w-56 rounded-full blur-[130px] ${ui.bg}`} />
         <div className="relative mx-auto max-w-3xl px-margin-mobile md:px-margin-desktop">
@@ -71,13 +76,13 @@ export default async function AppointmentDetailPage({
             className="mb-6 inline-flex items-center gap-2 font-mono text-label-sm uppercase tracking-wider text-on-surface-variant transition-colors hover:text-secondary"
           >
             <ArrowLeft className="size-4" />
-            Danh sách lịch hẹn
+            {isVi ? "Danh sách lịch hẹn" : "Appointment list"}
           </Link>
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="font-mono text-label-sm uppercase tracking-widest text-on-surface-variant/60">
-                Mã lịch hẹn
+                {dictionary.track.code}
               </p>
               <p className="font-mono text-display-lg-mobile font-bold text-on-surface">
                 {appt.appointmentCode}
@@ -87,7 +92,7 @@ export default async function AppointmentDetailPage({
               className={`inline-flex w-max items-center gap-2 rounded-full border ${ui.border} ${ui.bg} px-4 py-2 font-mono text-label-md ${ui.text}`}
             >
               <StatusIcon className="size-4" aria-hidden="true" />
-              {ui.label}
+              {dictionary.labels.appointmentStatus[appt.status]}
             </span>
           </div>
         </div>
@@ -98,17 +103,21 @@ export default async function AppointmentDetailPage({
           <AppointmentDetail appt={appt} />
 
           {/* Cancel */}
-          <div className="flex flex-col items-start gap-3 border-t border-white/5 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col items-start gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
             {canCancel ? (
               <>
                 <p className="text-body-md text-on-surface-variant">
-                  Bạn có thể huỷ khi lịch hẹn còn ở trạng thái “Đã nhận”.
+                  {isVi
+                    ? "Bạn có thể huỷ khi lịch hẹn còn ở trạng thái \"Đã nhận\"."
+                    : "You can cancel while the appointment is still in Received status."}
                 </p>
                 <CancelAppointmentButton code={appt.appointmentCode} />
               </>
             ) : (
               <p className="text-body-md text-on-surface-variant">
-                Lịch hẹn không thể huỷ ở trạng thái hiện tại.
+                {isVi
+                  ? "Lịch hẹn không thể huỷ ở trạng thái hiện tại."
+                  : "This appointment cannot be cancelled in its current status."}
               </p>
             )}
           </div>

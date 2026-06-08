@@ -7,7 +7,6 @@ import {
   LogOut,
   Menu,
   UserRound,
-  Wrench,
 } from "lucide-react";
 
 import { auth } from "@/lib/auth";
@@ -29,23 +28,29 @@ import {
 } from "@/components/ui/sheet";
 
 import { NavLinks } from "./nav-links";
+import { BrandLogo } from "./brand-logo";
+import { ThemeToggle } from "./theme-toggle";
+import { LanguageToggle } from "./language-toggle";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 export async function Navbar() {
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
   const session = await auth();
   const user = session?.user;
   const isAdmin = user?.role === "ADMIN";
-  const displayName = user?.name ?? "Tài khoản";
+  const displayName = user?.name ?? dictionary.common.account;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/5 bg-surface-container-lowest/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-border bg-surface-container-lowest/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-container-max items-center justify-between gap-3 px-margin-mobile md:h-20 md:px-margin-desktop">
         <Link
           href="/"
-          className="group flex items-center gap-2 text-headline-sm font-bold text-on-surface"
-          aria-label="FixNow — về trang chủ"
+          className="flex min-w-0 items-center"
+          aria-label={dictionary.common.homeAria}
         >
-          <Wrench className="size-6 text-secondary transition-transform duration-500 group-hover:rotate-90" />
-          FixNow
+          <BrandLogo size="md" priority />
         </Link>
 
         <NavLinks
@@ -54,12 +59,15 @@ export async function Navbar() {
         />
 
         <div className="flex items-center gap-2">
+          <LanguageToggle className="hidden text-on-surface hover:bg-surface-container-high md:inline-flex" />
+          <ThemeToggle className="hidden text-on-surface hover:bg-surface-container-high md:inline-flex" />
+
           <Link
             href="/booking"
             className="btn-gradient glow-cta hidden items-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white md:inline-flex"
           >
             <CalendarPlus className="size-4" />
-            Đặt lịch
+            {dictionary.common.booking}
           </Link>
 
           {user ? (
@@ -79,7 +87,7 @@ export async function Navbar() {
                     <DropdownMenuItem asChild>
                       <Link href="/admin">
                         <LayoutDashboard className="size-4" />
-                        Trang admin
+                        {dictionary.common.admin}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -88,13 +96,13 @@ export async function Navbar() {
                 <DropdownMenuItem asChild>
                   <Link href="/my-appointments">
                     <ClipboardList className="size-4" />
-                    Lịch hẹn của tôi
+                    {dictionary.common.myAppointments}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/account">
                     <UserRound className="size-4" />
-                    Tài khoản
+                    {dictionary.common.account}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -105,7 +113,7 @@ export async function Navbar() {
                       className="w-full cursor-pointer text-left"
                     >
                       <LogOut className="size-4" />
-                      Đăng xuất
+                      {dictionary.common.logout}
                     </button>
                   </DropdownMenuItem>
                 </form>
@@ -117,7 +125,7 @@ export async function Navbar() {
               variant="ghost"
               className="hidden text-on-surface hover:bg-surface-container-high md:inline-flex"
             >
-              <Link href="/login">Đăng nhập</Link>
+              <Link href="/login">{dictionary.common.login}</Link>
             </Button>
           )}
 
@@ -127,23 +135,36 @@ export async function Navbar() {
                 variant="ghost"
                 size="icon"
                 className="size-11 text-on-surface hover:bg-surface-container-high lg:hidden"
-                aria-label="Mở menu"
+                aria-label={dictionary.common.openMenu}
               >
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="flex w-72 flex-col gap-0 border-white/10 bg-surface-container-lowest sm:w-80"
+              className="flex w-72 flex-col gap-0 border-border bg-surface-container-lowest sm:w-80"
             >
-              <SheetTitle className="flex items-center gap-2 text-lg font-bold text-on-surface">
-                <Wrench className="size-5 text-secondary" />
-                FixNow
+              <SheetTitle className="flex items-center">
+                <BrandLogo size="sm" />
               </SheetTitle>
 
               <NavLinks variant="mobile" className="mt-6 flex flex-col gap-1" />
 
-              <div className="my-4 h-px bg-white/10" />
+              <div className="my-4 h-px bg-border" />
+
+              <div className="mb-3 flex items-center justify-between rounded-lg border border-border px-3 py-2">
+                <span className="text-sm text-on-surface-variant">
+                  {dictionary.common.language}
+                </span>
+                <LanguageToggle className="text-on-surface hover:bg-surface-container-high" />
+              </div>
+
+              <div className="mb-3 flex items-center justify-between rounded-lg border border-border px-3 py-2">
+                <span className="text-sm text-on-surface-variant">
+                  {dictionary.common.theme}
+                </span>
+                <ThemeToggle className="text-on-surface hover:bg-surface-container-high" />
+              </div>
 
               <SheetClose asChild>
                 <Link
@@ -151,16 +172,16 @@ export async function Navbar() {
                   className="btn-gradient flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-bold text-white"
                 >
                   <CalendarPlus className="size-4" />
-                  Đặt lịch
+                  {dictionary.common.booking}
                 </Link>
               </SheetClose>
 
-              <div className="my-4 h-px bg-white/10" />
+              <div className="my-4 h-px bg-border" />
 
               {user ? (
                 <div className="flex flex-col gap-2">
                   <p className="text-sm text-on-surface-variant">
-                    Xin chào,{" "}
+                    {dictionary.common.hello},{" "}
                     <span className="font-medium text-on-surface">
                       {displayName}
                     </span>
@@ -174,7 +195,7 @@ export async function Navbar() {
                       >
                         <Link href="/admin">
                           <LayoutDashboard className="size-4" />
-                          Trang admin
+                          {dictionary.common.admin}
                         </Link>
                       </Button>
                     </SheetClose>
@@ -187,7 +208,7 @@ export async function Navbar() {
                     >
                       <Link href="/my-appointments">
                         <ClipboardList className="size-4" />
-                        Lịch hẹn của tôi
+                        {dictionary.common.myAppointments}
                       </Link>
                     </Button>
                   </SheetClose>
@@ -199,7 +220,7 @@ export async function Navbar() {
                     >
                       <Link href="/account">
                         <UserRound className="size-4" />
-                        Tài khoản
+                        {dictionary.common.account}
                       </Link>
                     </Button>
                   </SheetClose>
@@ -210,14 +231,14 @@ export async function Navbar() {
                       className="h-11 w-full justify-start"
                     >
                       <LogOut className="size-4" />
-                      Đăng xuất
+                      {dictionary.common.logout}
                     </Button>
                   </form>
                 </div>
               ) : (
                 <SheetClose asChild>
                   <Button asChild variant="outline" className="h-11 w-full">
-                    <Link href="/login">Đăng nhập</Link>
+                    <Link href="/login">{dictionary.common.login}</Link>
                   </Button>
                 </SheetClose>
               )}

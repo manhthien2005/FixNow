@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function MyAppointmentsLoading() {
   return (
     <>
-      <section className="border-b border-white/5 bg-background py-14 md:py-20">
+      <section className="border-b border-border bg-background py-14 md:py-20">
         <div className="mx-auto max-w-5xl px-margin-mobile md:px-margin-desktop">
           <Skeleton className="h-4 w-28" />
           <Skeleton className="mt-4 h-10 w-72 max-w-full" />

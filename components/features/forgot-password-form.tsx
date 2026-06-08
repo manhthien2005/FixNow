@@ -17,9 +17,18 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { forgotPasswordSchema } from "@/lib/validations/auth";
+import {
+  INPUT_LIMITS,
+  PHONE_RAW_INPUT_MAX_LENGTH,
+  limitText,
+  sanitizePhoneInput,
+} from "@/lib/input-normalizers";
+import { useI18n } from "@/components/i18n/language-provider";
 
 export function ForgotPasswordForm() {
   const router = useRouter();
+  const { dictionary } = useI18n();
   const [done, setDone] = useState(false);
   const [pending, setPending] = useState(false);
   const [form, setForm] = useState({
@@ -35,12 +44,10 @@ export function ForgotPasswordForm() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (form.newPassword.length < 6) {
-      toast.error("Mật khẩu mới ít nhất 6 ký tự.");
-      return;
-    }
-    if (form.newPassword !== form.confirmPassword) {
-      toast.error("Mật khẩu xác nhận không khớp.");
+    const parsed = forgotPasswordSchema.safeParse(form);
+    if (!parsed.success) {
+      const firstMessage = parsed.error.issues[0]?.message;
+      toast.error(firstMessage ?? dictionary.auth.invalidForm);
       return;
     }
     setPending(true);
@@ -48,17 +55,17 @@ export function ForgotPasswordForm() {
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(parsed.data),
       });
       const data = (await res.json()) as { message?: string };
       if (!res.ok) {
-        toast.error(data.message ?? "Không thể đặt lại mật khẩu.");
+        toast.error(data.message ?? dictionary.auth.resetFailed);
         return;
       }
       setDone(true);
-      toast.success("Đặt lại mật khẩu thành công.");
+      toast.success(dictionary.auth.resetSuccess);
     } catch {
-      toast.error("Lỗi mạng, vui lòng thử lại.");
+      toast.error(dictionary.auth.networkError);
     } finally {
       setPending(false);
     }
@@ -66,19 +73,21 @@ export function ForgotPasswordForm() {
 
   if (done) {
     return (
-      <Card className="glass-panel border-white/10">
+      <Card className="glass-panel border-border">
         <CardHeader className="items-center space-y-3 text-center">
           <span className="flex size-14 items-center justify-center rounded-full bg-emerald-400/10 text-emerald-400">
             <CircleCheck className="size-7" aria-hidden="true" />
           </span>
-          <CardTitle className="text-2xl">Đã đặt lại mật khẩu</CardTitle>
+          <CardTitle className="text-2xl">
+            {dictionary.auth.resetDoneTitle}
+          </CardTitle>
           <CardDescription>
-            Bạn có thể đăng nhập bằng mật khẩu mới ngay bây giờ.
+            {dictionary.auth.resetDoneText}
           </CardDescription>
         </CardHeader>
         <CardFooter>
           <Button className="h-11 w-full" size="lg" onClick={() => router.push("/login")}>
-            Đến trang đăng nhập
+            {dictionary.auth.goLogin}
           </Button>
         </CardFooter>
       </Card>
@@ -86,71 +95,90 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <Card className="glass-panel border-white/10">
+    <Card className="glass-panel border-border">
       <CardHeader className="space-y-2 text-center">
-        <CardTitle className="text-2xl">Quên mật khẩu</CardTitle>
+        <CardTitle className="text-2xl">{dictionary.auth.forgotTitle}</CardTitle>
         <CardDescription>
-          Xác minh bằng số điện thoại và email đã đăng ký để đặt lại mật khẩu.
+          {dictionary.auth.forgotDescription}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4" noValidate>
           <div className="space-y-1.5">
-            <Label htmlFor="fp-phone">Số điện thoại</Label>
+            <Label htmlFor="fp-phone">{dictionary.common.phone}</Label>
             <Input
               id="fp-phone"
               type="tel"
               inputMode="tel"
               value={form.phone}
-              onChange={(e) => set("phone", e.target.value)}
+              onChange={(e) => set("phone", sanitizePhoneInput(e.target.value))}
               placeholder="0901234567"
               className="h-11 text-base"
               autoComplete="tel"
+              maxLength={PHONE_RAW_INPUT_MAX_LENGTH}
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="fp-email">Email đã đăng ký</Label>
+            <Label htmlFor="fp-email">{dictionary.auth.registeredEmail}</Label>
             <Input
               id="fp-email"
               type="email"
               value={form.email}
-              onChange={(e) => set("email", e.target.value)}
+              onChange={(e) =>
+                set("email", limitText(e.target.value, INPUT_LIMITS.email))
+              }
+              onBlur={(e) => set("email", e.target.value.trim().toLowerCase())}
               placeholder="email@example.com"
               className="h-11 text-base"
               autoComplete="email"
+              maxLength={INPUT_LIMITS.email}
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="fp-new">Mật khẩu mới</Label>
+            <Label htmlFor="fp-new">{dictionary.auth.newPassword}</Label>
             <Input
               id="fp-new"
               type="password"
               value={form.newPassword}
-              onChange={(e) => set("newPassword", e.target.value)}
+              onChange={(e) =>
+                set(
+                  "newPassword",
+                  limitText(e.target.value, INPUT_LIMITS.password),
+                )
+              }
               className="h-11 text-base"
               autoComplete="new-password"
+              maxLength={INPUT_LIMITS.password}
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="fp-confirm">Xác nhận mật khẩu mới</Label>
+            <Label htmlFor="fp-confirm">
+              {dictionary.auth.confirmNewPassword}
+            </Label>
             <Input
               id="fp-confirm"
               type="password"
               value={form.confirmPassword}
-              onChange={(e) => set("confirmPassword", e.target.value)}
+              onChange={(e) =>
+                set(
+                  "confirmPassword",
+                  limitText(e.target.value, INPUT_LIMITS.password),
+                )
+              }
               className="h-11 text-base"
               autoComplete="new-password"
+              maxLength={INPUT_LIMITS.password}
             />
           </div>
           <Button type="submit" className="h-11 w-full" size="lg" disabled={pending}>
             {pending ? <Loader2 className="size-4 animate-spin" /> : null}
-            Đặt lại mật khẩu
+            {dictionary.auth.resetPassword}
           </Button>
         </form>
       </CardContent>
       <CardFooter className="justify-center text-sm text-muted-foreground">
         <Link href="/login" className="font-medium text-primary hover:underline">
-          Quay lại đăng nhập
+          {dictionary.auth.backLogin}
         </Link>
       </CardFooter>
     </Card>
