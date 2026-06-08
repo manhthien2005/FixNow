@@ -39,7 +39,7 @@ Use these for any non-trivial work:
 - [ ] Booking flow (form → POST → appointment code)
 - [x] My appointments + detail + cancel button (POST /api/appointments/[code]/cancel)
 - [x] Admin panel: /admin dashboard (5 stat cards + recent), /admin/appointments (filter + paginate), detail + status changer (state-machine RECEIVED → IN_PROGRESS → COMPLETED with CANCELLED escape). GET + PATCH /api/appointments. Topbar layout với role badge.
-- [ ] Responsive QA pass
+- [x] Responsive QA: auto checks pass (text-base inputs, touch targets, tokens only, md:hidden floating, 8 client islands), manual viewport check verified by user
 
 **DB connection notes (Supabase):**
 - Direct connection (port 5432, `db.<ref>.supabase.co`) → IPv6-only, won't work on most Vietnamese dev networks.
