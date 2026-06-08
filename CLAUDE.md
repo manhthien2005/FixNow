@@ -32,7 +32,7 @@ Use these for any non-trivial work:
 - [x] shadcn/ui base components (13 primitives in `components/ui/`)
 - [x] NextAuth v5 foundation (split config: `auth.config.ts` Edge-safe + `lib/auth.ts` bcrypt+DB authorize)
 - [x] Zod validations + VN label maps (`lib/validations/`, `lib/labels.ts`)
-- [ ] Seed data (services, parts, admin user)
+- [x] Seed data: 2 users, 9 services, 21 parts (4-5 mỗi loại), 3 sample appointments — idempotent via onConflictDoNothing
 - [ ] Layout chung (navbar, footer, floating contact)
 - [ ] 6 trang MVP (home, services, pricing, parts, contact, book)
 - [ ] Auth pages (login, register) + API route handlers
