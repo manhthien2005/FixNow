@@ -152,7 +152,7 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                         type="text"
                         autoComplete="name"
                         placeholder="Nguyễn Văn A"
-                        className="text-base"
+                        className="h-11 text-base"
                         {...field}
                       />
                     </FormControl>
@@ -173,7 +173,7 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                         inputMode="tel"
                         autoComplete="tel"
                         placeholder="0901234567"
-                        className="text-base"
+                        className="h-11 text-base"
                         {...field}
                       />
                     </FormControl>
@@ -194,7 +194,7 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                       type="text"
                       autoComplete="street-address"
                       placeholder="Số nhà, đường, quận, thành phố"
-                      className="text-base"
+                      className="h-11 text-base"
                       {...field}
                     />
                   </FormControl>
@@ -215,7 +215,7 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                       value={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="h-10 text-base md:text-sm">
+                        <SelectTrigger className="h-11 text-base md:text-sm">
                           <SelectValue placeholder="Chọn loại thiết bị" />
                         </SelectTrigger>
                       </FormControl>
@@ -243,7 +243,7 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                       value={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="h-10 text-base md:text-sm">
+                        <SelectTrigger className="h-11 text-base md:text-sm">
                           <SelectValue placeholder="Chọn nhóm dịch vụ" />
                         </SelectTrigger>
                       </FormControl>
@@ -289,7 +289,7 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                   <FormControl>
                     <Input
                       type="datetime-local"
-                      className="text-base"
+                      className="h-11 text-base"
                       {...field}
                       value={field.value ?? ""}
                     />
@@ -307,7 +307,7 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                 type="submit"
                 size="lg"
                 disabled={isSubmitting}
-                className="w-full md:w-auto md:px-12"
+                className="h-11 w-full md:w-auto md:px-12"
               >
                 {isSubmitting ? "Đang gửi..." : "Gửi yêu cầu"}
               </Button>

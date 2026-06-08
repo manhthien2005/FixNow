@@ -1,203 +1,300 @@
 # FixNow
 
-> Website đặt lịch sửa chữa & bảo trì laptop / PC tận nơi.
-> Đồ án sinh viên — minh bạch giá, mobile-first, tiếng Việt.
+> Website đặt lịch sửa chữa laptop, PC và thiết bị văn phòng tận nơi.
+> Tập trung vào trải nghiệm đặt lịch đơn giản, giá minh bạch và quản lý lịch hẹn rõ ràng.
 
-## 1. Tổng quan
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=111)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=fff)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?logo=postgresql&logoColor=fff)
+![Drizzle](https://img.shields.io/badge/Drizzle-ORM-C5F74F)
+![Tailwind](https://img.shields.io/badge/Tailwind-CSS-06B6D4?logo=tailwindcss&logoColor=fff)
 
-FixNow là kênh **giới thiệu dịch vụ + đặt lịch + tra cứu giá** cho dịch vụ
-sửa chữa tận nơi. Mobile-first vì phần lớn khách hàng dùng điện thoại.
+## Tổng Quan
 
-**Giá trị cốt lõi**: Tiện lợi — Minh bạch — Nhanh chóng — An toàn dữ liệu.
+FixNow là nền tảng web giúp khách hàng:
 
-## 2. Stack
+1. Xem dịch vụ sửa chữa laptop, PC, máy in và thiết bị văn phòng.
+2. Tra cứu bảng giá dịch vụ và linh kiện.
+3. Đặt lịch sửa chữa tận nơi.
+4. Theo dõi trạng thái lịch hẹn bằng tài khoản hoặc mã lịch hẹn.
+5. Liên hệ nhanh qua hotline / Zalo.
 
-| Layer | Choice |
-|-------|--------|
-| Framework | Next.js 15 (App Router) |
+Admin có thể quản lý lịch hẹn, cập nhật trạng thái, quản lý bảng giá dịch vụ và linh kiện.
+
+## Tech Stack
+
+| Layer | Stack |
+| --- | --- |
+| Framework | Next.js 15 App Router |
+| UI | React 19, Server Components, shadcn/ui |
+| Styling | Tailwind CSS |
 | Language | TypeScript strict |
-| UI | React 19 Server Components + selective `'use client'` |
-| Styling | Tailwind CSS v3 + shadcn/ui (new-york) |
-| Database | PostgreSQL (Supabase Session Pooler) |
+| Database | PostgreSQL |
 | ORM | Drizzle ORM + drizzle-kit |
-| Auth | NextAuth v5 (Credentials + bcryptjs) |
+| Auth | NextAuth v5 Credentials + bcryptjs |
 | Forms | react-hook-form + zod |
 | Icons | lucide-react |
+| Media storage | Optional Supabase Storage |
 
-Chi tiết lựa chọn + lý do: `docs/decisions.md`.
+## Tính Năng Chính
 
-## 3. Features (MVP)
+### Khách Hàng
 
-### Khách hàng (public + auth)
-- Trang chủ — hero, 4 giá trị cốt lõi, quy trình 6 bước, CTA
-- Dịch vụ — 6 nhóm dịch vụ chính
-- Bảng giá dịch vụ — DB-driven, có disclaimer "báo giá trước khi sửa"
-- Giá linh kiện — tra cứu RAM / SSD / HDD / pin / phụ kiện, có search + filter loại
-- Đặt lịch — form hybrid (guest OK, auth prefill tên + SĐT), validate zod, sinh mã `FN-YYYY-XXXX`
-- Xác nhận đặt lịch — hiện mã hẹn + thông tin, CTAs phù hợp guest / auth
-- Liên hệ — hotline, Zalo, khu vực phục vụ
-- Tra cứu lịch hẹn — guest dùng SĐT + mã, kết quả render server-side
-- Đăng ký / Đăng nhập — NextAuth Credentials, hash bcrypt cost 10
-- Lịch hẹn của tôi — danh sách + chi tiết, hủy đơn khi trạng thái RECEIVED
+- Landing page giới thiệu FixNow, dịch vụ, quy trình và khu vực phục vụ.
+- Trang dịch vụ theo nhóm: laptop, PC, máy in, phần mềm, nâng cấp, hỗ trợ từ xa.
+- Bảng giá dịch vụ lấy từ database.
+- Trang linh kiện có tìm kiếm và lọc theo loại RAM / SSD / HDD / pin / phụ kiện.
+- Đăng ký, đăng nhập bằng số điện thoại hoặc email.
+- Đặt lịch sửa chữa với form validate bằng zod.
+- Tạo mã lịch hẹn dạng `FN-YYYY-XXXX`.
+- Tra cứu lịch hẹn bằng số điện thoại và mã hẹn.
+- Xem danh sách lịch hẹn cá nhân.
+- Hủy lịch hẹn khi trạng thái còn `RECEIVED`.
 
 ### Admin
-- Dashboard — 5 stat cards (Tổng + 4 trạng thái) + 5 đơn mới nhất
-- Danh sách lịch hẹn — filter status + tìm theo mã/SĐT, paginate 20/trang
-- Chi tiết đơn — đổi trạng thái theo state machine:
-  - RECEIVED → IN_PROGRESS / CANCELLED
-  - IN_PROGRESS → COMPLETED / CANCELLED
-  - COMPLETED / CANCELLED → terminal (không revert)
 
-## 4. Cấu trúc thư mục
+- Dashboard thống kê lịch hẹn theo trạng thái.
+- Danh sách lịch hẹn có tìm kiếm, lọc và phân trang.
+- Chi tiết lịch hẹn và cập nhật trạng thái.
+- CRUD dịch vụ.
+- CRUD linh kiện.
+- Upload ảnh dịch vụ / linh kiện nếu cấu hình Supabase Storage.
 
+## Cấu Trúc Repo
+
+```text
+FixNow/
+├── app/
+│   ├── (public)/          # Landing, services, pricing, parts, booking, contact, track
+│   ├── (auth)/            # Login, register, forgot password
+│   ├── (customer)/        # Account, my appointments
+│   ├── admin/             # Admin dashboard and management pages
+│   ├── api/               # Route handlers
+│   └── actions/           # Server actions
+├── components/
+│   ├── ui/                # shadcn primitives
+│   ├── layout/            # Navbar, footer, floating contact, admin topbar
+│   ├── features/          # Domain components
+│   └── marketing/         # Landing page helpers
+├── db/
+│   ├── schema.ts          # Drizzle schema
+│   ├── index.ts           # Server-only database client
+│   └── seed.ts            # Demo data seed
+├── drizzle/               # SQL migrations and Drizzle metadata
+├── lib/
+│   ├── auth.ts            # NextAuth config
+│   ├── labels.ts          # Vietnamese enum labels
+│   ├── storage.ts         # Optional Supabase Storage helper
+│   └── validations/       # zod schemas
+├── docs/                  # Project docs
+├── public/images/         # UI images and brand assets
+└── scripts/               # Utility scripts
 ```
-app/
-├── (public)/         # Home, services, pricing, parts, booking, contact, track
-├── (auth)/           # Login, register (layout riêng — centered card, no navbar)
-├── (customer)/       # My-appointments (cần login)
-├── admin/            # Admin panel (cần role=ADMIN)
-├── api/              # Route handlers
-└── actions/          # Server actions (logout)
 
-components/
-├── ui/               # shadcn primitives (CLI-generated)
-├── layout/           # navbar, footer, floating-contact, nav-links, admin-topbar
-└── features/         # booking-form, parts-explorer, admin-status-changer, …
+## Yêu Cầu Môi Trường
 
-db/
-├── schema.ts         # Drizzle schema (4 tables, 4 enums)
-├── index.ts          # server-only Pool singleton
-└── seed.ts           # Idempotent VN fixture data
+- Node.js 20 LTS khuyến nghị.
+- npm.
+- PostgreSQL database.
+- GitHub / Vercel account nếu deploy production.
 
-lib/
-├── auth.ts           # NextAuth full config (bcrypt + DB)
-├── labels.ts         # VN labels cho enums
-├── utils.ts          # cn, formatAppointmentCode, formatDateVi
-├── appointment-status.ts  # State machine cho admin
-└── validations/      # zod schemas: auth, booking, admin
-
-drizzle/              # Migrations (committed)
-docs/                 # Decisions, schema mirror, routes, conventions, UI system
-.claude/              # Skills, agents, slash commands cho Claude Code
-```
-
-## 5. Yêu cầu môi trường
-
-- Node.js ≥ 18.17 (khuyến nghị 20 LTS)
-- Postgres database (Supabase / Neon / local)
-- npm
-
-## 6. Cài đặt local
+## Cài Đặt Local
 
 ```bash
-git clone <repo-url> fixnow
-cd fixnow
+git clone https://github.com/manhthien2005/FixNow.git
+cd FixNow
 npm install
 ```
 
-Tạo file `.env.local` từ `.env.example`:
+Tạo `.env.local` từ `.env.example`:
 
 ```env
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DB?sslmode=require&uselibpqcompat=true"
-NEXTAUTH_SECRET="<openssl rand -base64 32>"
+DATABASE_URL="postgresql://USER:PASSWORD@HOST/DBNAME?sslmode=require"
+
+AUTH_SECRET="generate-a-strong-secret"
+NEXTAUTH_SECRET="same-as-auth-secret"
 NEXTAUTH_URL="http://localhost:3000"
-AUTH_SECRET="<cùng giá trị NEXTAUTH_SECRET>"
+AUTH_TRUST_HOST="true"
+
+# Optional: admin image uploads
+NEXT_PUBLIC_SUPABASE_URL=""
+SUPABASE_SERVICE_ROLE_KEY=""
+SUPABASE_STORAGE_BUCKET="fixnow-media"
 ```
 
-**Lưu ý DB**:
-- Nếu dùng Supabase free tier → bật Session Pooler (port 5432), KHÔNG dùng
-  Transaction Pooler (port 6543) — Drizzle cần prepared statements.
-- Tham số `uselibpqcompat=true` để pg client chấp nhận cert Supabase
-  (xem `docs/decisions.md` mục 2026-06-08).
-
-Chạy migration + seed:
+Tạo secret:
 
 ```bash
-npm run db:migrate   # apply schema
-npm run db:seed      # tạo demo data (admin + customer + services + parts)
-npm run dev          # mở http://localhost:3000
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-## 7. Demo accounts (sau khi seed)
+Chạy migration và seed:
 
-| Role | Login | Mật khẩu |
-|------|-------|----------|
+```bash
+npm run db:migrate
+npm run db:seed
+```
+
+Chạy local:
+
+```bash
+npm run dev
+```
+
+Mở `http://localhost:3000`.
+
+## Demo Accounts
+
+Sau khi chạy seed:
+
+| Role | Login | Password |
+| --- | --- | --- |
 | Admin | `admin@fixnow.local` hoặc `0900000001` | `admin123` |
 | Customer | `demo@example.com` hoặc `0987654321` | `demo1234` |
 
-Demo data: 9 dịch vụ, 21 linh kiện, 3 lịch hẹn mẫu (`FN-2026-0001..0003`).
+> Khi dùng production thật, đổi thông tin admin mặc định ngay sau khi seed hoặc chỉnh `db/seed.ts` trước khi chạy.
 
-## 8. Scripts
+## Scripts
 
 ```bash
-npm run dev          # Dev server
+npm run dev          # Start development server
 npm run build        # Production build
-npm run start        # Production server
+npm run start        # Start production server
 npm run lint         # ESLint
-npm run db:generate  # Drizzle: tạo migration từ schema
-npm run db:migrate   # Drizzle: apply migration
-npm run db:studio    # Drizzle Studio (UI xem data)
-npm run db:seed      # Reset / refresh demo data (idempotent)
+npm run db:generate  # Generate Drizzle migration
+npm run db:migrate   # Apply migration
+npm run db:studio    # Open Drizzle Studio
+npm run db:seed      # Seed demo data
 ```
 
-## 9. Routes
+## Kiểm Tra Chất Lượng
 
-### Public + customer
-| Path | Auth | Mô tả |
-|------|------|-------|
-| `/` | - | Trang chủ |
-| `/services` | - | 6 nhóm dịch vụ |
-| `/pricing` | - | Bảng giá dịch vụ |
-| `/parts` | - | Tra cứu linh kiện |
-| `/contact` | - | Liên hệ |
-| `/track` | - | Tra cứu lịch hẹn bằng SĐT + mã |
-| `/booking` | guest OK | Đặt lịch |
-| `/booking/success` | - | Xác nhận đặt lịch |
-| `/login`, `/register` | - | Auth |
-| `/my-appointments` | customer | Lịch hẹn của tôi |
-| `/my-appointments/[code]` | owner | Chi tiết + hủy |
+Trước khi commit / deploy:
+
+```bash
+npm run lint
+npx tsc --noEmit
+npm run build
+npm audit --audit-level=high
+```
+
+Responsive baseline:
+
+| Viewport | Size |
+| --- | --- |
+| Mobile | 375 x 667 |
+| Tablet | 768 x 1024 |
+| Desktop | 1280 x 800 |
+
+## Routes
+
+### Public
+
+| Path | Description |
+| --- | --- |
+| `/` | Landing page |
+| `/services` | Service groups |
+| `/pricing` | Service pricing |
+| `/parts` | Parts lookup |
+| `/booking` | Booking form |
+| `/booking/success` | Booking confirmation |
+| `/contact` | Contact and service area |
+| `/track` | Track appointment by phone + code |
+| `/login` | Login |
+| `/register` | Register |
+| `/forgot-password` | Password reset |
+
+### Customer
+
+| Path | Description |
+| --- | --- |
+| `/account` | Account settings |
+| `/my-appointments` | Customer appointments |
+| `/my-appointments/[code]` | Appointment detail and cancel action |
 
 ### Admin
-| Path | Auth | Mô tả |
-|------|------|-------|
-| `/admin` | ADMIN | Dashboard |
-| `/admin/appointments` | ADMIN | Danh sách + filter |
-| `/admin/appointments/[code]` | ADMIN | Chi tiết + đổi trạng thái |
 
-### API
+| Path | Description |
+| --- | --- |
+| `/admin` | Dashboard |
+| `/admin/appointments` | Manage appointments |
+| `/admin/appointments/[code]` | Appointment detail and status update |
+| `/admin/services` | Manage service prices |
+| `/admin/parts` | Manage parts |
+
+## API Overview
+
 | Method | Path | Auth |
-|--------|------|------|
-| POST | `/api/auth/register` | - |
-| POST | `/api/auth/[...nextauth]` | - |
-| POST | `/api/appointments` | optional |
-| GET | `/api/appointments` | ADMIN |
-| POST | `/api/appointments/[code]/cancel` | owner |
-| PATCH | `/api/appointments/[code]/status` | ADMIN |
+| --- | --- | --- |
+| `POST` | `/api/auth/register` | Public |
+| `POST` | `/api/auth/forgot-password` | Public |
+| `POST` | `/api/appointments` | Optional |
+| `GET` | `/api/appointments` | Admin |
+| `GET` | `/api/appointments/me` | Customer |
+| `GET` | `/api/appointments/track` | Public |
+| `GET` | `/api/appointments/[code]` | Owner / Admin |
+| `POST` | `/api/appointments/[code]/cancel` | Owner |
+| `PATCH` | `/api/appointments/[code]/status` | Admin |
+| `GET` | `/api/services` | Public |
+| `GET` | `/api/parts` | Public |
+| `PATCH` | `/api/account` | Customer |
+| `POST` | `/api/account/password` | Customer |
+| `GET/POST` | `/api/admin/services` | Admin |
+| `PATCH/DELETE` | `/api/admin/services/[id]` | Admin |
+| `GET/POST` | `/api/admin/parts` | Admin |
+| `PATCH/DELETE` | `/api/admin/parts/[id]` | Admin |
+| `POST` | `/api/admin/upload` | Admin |
 
-## 10. Quy ước
+## Deploy Lên Vercel
 
-- TypeScript `strict: true`, no `any`
-- Server Component mặc định, `'use client'` chỉ khi cần state / event
-- Mobile-first Tailwind (base → `sm:` → `md:` → `lg:`)
-- UI tiếng Việt có dấu, identifier + comment tiếng Anh
-- Commit format Conventional: `feat: ...`, `fix: ...`, `chore: ...`
-- Chi tiết: `docs/conventions.md` + `AGENTS.md`
+1. Tạo PostgreSQL database và lấy `DATABASE_URL`.
+2. Import repo vào Vercel.
+3. Framework preset: `Next.js`.
+4. Build command: `npm run build`.
+5. Thêm Environment Variables:
 
-## 11. Bảo mật
+```env
+DATABASE_URL="postgresql://..."
+AUTH_SECRET="..."
+NEXTAUTH_SECRET="..."
+AUTH_TRUST_HOST="true"
+AUTH_URL="https://your-domain.vercel.app"
+NEXTAUTH_URL="https://your-domain.vercel.app"
+```
 
-- Password hash bcrypt cost 10 trước khi lưu
-- `passwordHash` không bao giờ trả về client (columns projection)
-- `import 'server-only'` ngăn DB client lọt vào Client Component bundle
-- `.env*` gitignored
-- Route protection qua `middleware.ts` (admin / customer)
-- API admin endpoints check `session.user.role === 'ADMIN'` server-side
-- Owner check trên cancel endpoint (không leak existence)
+Optional nếu dùng upload ảnh:
 
-## 12. Sau MVP (không nằm trong phạm vi này)
+```env
+NEXT_PUBLIC_SUPABASE_URL="https://xxx.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="..."
+SUPABASE_STORAGE_BUCKET="fixnow-media"
+```
 
-- Đánh giá / phản hồi sau khi sửa
-- Gói bảo trì định kỳ
-- Admin CRUD parts / services (hiện chỉ đọc từ seed)
-- Lịch sử thay đổi trạng thái (audit log)
-- Notification email / SMS / Zalo khi status đổi
-- Rate limit cho `/api/auth/register`
+6. Chạy migration production database:
+
+```bash
+DATABASE_URL="postgresql://..." npm run db:migrate
+```
+
+7. Seed dữ liệu demo nếu cần:
+
+```bash
+DATABASE_URL="postgresql://..." npm run db:seed
+```
+
+8. Redeploy project trên Vercel.
+
+## Bảo Mật
+
+- Mật khẩu được hash bằng bcrypt trước khi lưu.
+- `passwordHash` không được trả về client.
+- Database client được đánh dấu `server-only`.
+- Route admin kiểm tra role ở middleware và trong API handler.
+- API customer có owner check cho dữ liệu lịch hẹn.
+- `.env*` và `.env.local` không được commit.
+- Upload ảnh yêu cầu Supabase service role key, chỉ dùng server-side.
+
+## License
+
+No public license. Contact the author before reuse or redistribution.

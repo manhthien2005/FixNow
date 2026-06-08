@@ -69,7 +69,7 @@ export function TrackForm({ defaultPhone, defaultCode }: TrackFormProps) {
                 inputMode="tel"
                 autoComplete="tel"
                 placeholder="0901234567"
-                className="text-base"
+                className="h-11 text-base"
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
                 aria-invalid={phoneError ? "true" : undefined}
@@ -86,7 +86,7 @@ export function TrackForm({ defaultPhone, defaultCode }: TrackFormProps) {
                 type="text"
                 autoComplete="off"
                 placeholder="FN-2026-0001"
-                className="font-mono text-base uppercase"
+                className="h-11 font-mono text-base uppercase"
                 value={code}
                 onChange={(event) => setCode(event.target.value)}
                 aria-invalid={codeError ? "true" : undefined}
@@ -101,7 +101,7 @@ export function TrackForm({ defaultPhone, defaultCode }: TrackFormProps) {
             type="submit"
             size="lg"
             disabled={isPending}
-            className="w-full md:w-auto"
+            className="h-11 w-full md:w-auto"
           >
             <Search className="mr-2 size-4" />
             {isPending ? "Đang tra cứu..." : "Tra cứu"}

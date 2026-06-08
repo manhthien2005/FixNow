@@ -122,7 +122,7 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
   const isSubmitting = form.formState.isSubmitting;
 
   return (
-    <Card>
+    <Card className="glass-panel border-white/10">
       <CardHeader className="space-y-2 text-center">
         <CardTitle className="text-2xl">Đăng ký tài khoản</CardTitle>
         <CardDescription>
@@ -147,7 +147,7 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
                       type="text"
                       autoComplete="name"
                       placeholder="Nguyễn Văn A"
-                      className="text-base"
+                      className="h-11 text-base"
                       {...field}
                     />
                   </FormControl>
@@ -167,7 +167,7 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
                       inputMode="tel"
                       autoComplete="tel"
                       placeholder="0901234567"
-                      className="text-base"
+                      className="h-11 text-base"
                       {...field}
                     />
                   </FormControl>
@@ -186,7 +186,7 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
                       type="email"
                       autoComplete="email"
                       placeholder="ban@example.com"
-                      className="text-base"
+                      className="h-11 text-base"
                       {...field}
                     />
                   </FormControl>
@@ -204,7 +204,7 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
                     <Input
                       type="password"
                       autoComplete="new-password"
-                      className="text-base"
+                      className="h-11 text-base"
                       {...field}
                     />
                   </FormControl>
@@ -222,7 +222,7 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
                     <Input
                       type="password"
                       autoComplete="new-password"
-                      className="text-base"
+                      className="h-11 text-base"
                       {...field}
                     />
                   </FormControl>
@@ -232,7 +232,7 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
             />
             <Button
               type="submit"
-              className="w-full"
+              className="h-11 w-full"
               size="lg"
               disabled={isSubmitting}
             >

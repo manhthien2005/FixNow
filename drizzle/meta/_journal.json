@@ -8,6 +8,13 @@
       "when": 1780883740959,
       "tag": "0000_great_gertrude_yorkes",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780919639196,
+      "tag": "0001_exotic_wendigo",
+      "breakpoints": true
     }
   ]
 }

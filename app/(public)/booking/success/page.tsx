@@ -150,10 +150,10 @@ export default async function BookingSuccessPage({
       </Card>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-        <Button asChild size="lg">
+        <Button asChild size="lg" className="h-11">
           <Link href={trackHref}>Tra cứu lịch hẹn</Link>
         </Button>
-        <Button asChild size="lg" variant="outline">
+        <Button asChild size="lg" variant="outline" className="h-11">
           <Link href="/booking">Đặt lịch khác</Link>
         </Button>
       </div>
@@ -176,7 +176,7 @@ export default async function BookingSuccessPage({
                 nơi.
               </p>
             </div>
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="h-11">
               <Link href="/register?callbackUrl=/my-appointments">
                 Đăng ký
               </Link>

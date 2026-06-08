@@ -1,128 +1,169 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Mail, MapPin, MessageSquare, Phone } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  ArrowRight,
+  Clock,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Navigation,
+  Phone,
+  type LucideIcon,
+} from "lucide-react";
+
+import { SITE, mapEmbedSrc, mapDirectionsHref } from "@/lib/site";
+import { GridBackdrop } from "@/components/marketing/grid-backdrop";
+import { ScrollReveal } from "@/components/features/home/scroll-reveal";
 
 export const metadata: Metadata = {
   title: "Liên hệ",
   description:
-    "Liên hệ FixNow qua hotline, Zalo hoặc email. FixNow phục vụ tận nơi trong bán kính 3–5km nội thành TP.HCM.",
+    "Liên hệ FixNow qua hotline, Zalo hoặc email. Phục vụ tận nơi trong bán kính 3–5km nội thành TP.HCM.",
 };
 
-interface ContactItem {
-  icon: typeof Phone;
+type Accent = "secondary" | "primary" | "tertiary";
+
+const TILE: Record<Accent, string> = {
+  secondary: "text-secondary shadow-[0_0_15px_rgba(93,230,255,0.18)]",
+  primary: "text-primary shadow-[0_0_15px_rgba(173,198,255,0.18)]",
+  tertiary: "text-tertiary shadow-[0_0_15px_rgba(208,188,255,0.18)]",
+};
+
+const METHODS: {
+  icon: LucideIcon;
   label: string;
   value: string;
   href: string;
-}
-
-const CONTACT_ITEMS: ContactItem[] = [
-  {
-    icon: Phone,
-    label: "Hotline / Zalo",
-    value: "1900-xxxx",
-    href: "tel:1900xxxx",
-  },
-  {
-    icon: MessageSquare,
-    label: "Zalo OA",
-    value: "zalo.me/fixnow",
-    href: "https://zalo.me/fixnow",
-  },
-  {
-    icon: Mail,
-    label: "Email",
-    value: "support@fixnow.vn",
-    href: "mailto:support@fixnow.vn",
-  },
+  accent: Accent;
+}[] = [
+  { icon: Phone, label: "Hotline", value: SITE.hotline.label, href: SITE.hotline.href, accent: "secondary" },
+  { icon: MessageCircle, label: "Zalo OA", value: SITE.zalo.label, href: SITE.zalo.href, accent: "primary" },
+  { icon: Mail, label: "Email", value: SITE.email.label, href: SITE.email.href, accent: "tertiary" },
 ];
 
 export default function ContactPage() {
   return (
-    <div className="container mx-auto px-4 py-12 md:py-16">
-      <div className="mx-auto max-w-2xl text-center">
-        <h1 className="text-3xl font-bold md:text-4xl">Liên hệ FixNow</h1>
-        <p className="mt-3 text-muted-foreground">
-          Chúng tôi luôn sẵn sàng hỗ trợ kỹ thuật trong giờ làm việc.
-        </p>
-      </div>
+    <>
+      <ScrollReveal />
 
-      <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="flex flex-col gap-4">
-          {CONTACT_ITEMS.map(({ icon: Icon, label, value, href }) => (
-            <Card key={label} className="transition-shadow hover:shadow-md">
-              <CardContent className="flex items-center gap-4 p-4 md:p-6">
-                <span
-                  aria-hidden="true"
-                  className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
-                >
-                  <Icon className="size-6" />
+      {/* Hero */}
+      <section className="relative overflow-hidden border-b border-white/5 bg-background py-20 md:py-28">
+        <GridBackdrop />
+        <div aria-hidden className="absolute right-[12%] top-0 h-72 w-72 rounded-full bg-secondary/10 blur-[140px]" />
+        <div aria-hidden className="absolute -bottom-10 left-[8%] h-72 w-96 rounded-full bg-primary/10 blur-[150px]" />
+        <div className="relative mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
+          <div className="fade-in-up max-w-3xl">
+            <p className="mb-4 font-mono text-label-sm uppercase tracking-widest text-secondary">
+              &gt; CONTACT
+            </p>
+            <h1 className="text-display-lg-mobile text-on-surface md:text-display-lg">
+              Kết nối với <span className="text-gradient">FixNow</span>
+            </h1>
+            <p className="mt-6 max-w-xl text-body-lg text-on-surface-variant">
+              Gọi hotline, nhắn Zalo hoặc email — chúng tôi luôn sẵn sàng hỗ trợ
+              kỹ thuật trong giờ làm việc.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Methods + map */}
+      <section className="relative overflow-hidden bg-background py-16 md:py-20">
+        <div className="relative mx-auto grid max-w-container-max grid-cols-1 gap-8 px-margin-mobile md:px-margin-desktop lg:grid-cols-2">
+          {/* Left: methods + info */}
+          <div className="flex flex-col gap-4">
+            {METHODS.map(({ icon: Icon, label, value, href, accent }, i) => (
+              <a
+                key={label}
+                href={href}
+                target={href.startsWith("http") ? "_blank" : undefined}
+                rel={href.startsWith("http") ? "noreferrer" : undefined}
+                className={`glass-panel fade-in-up stagger-${i % 4} group flex items-center gap-4 rounded-2xl p-5 transition-colors hover:border-white/20`}
+              >
+                <span className={`flex size-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-surface-container-high/50 ${TILE[accent]}`}>
+                  <Icon className="size-6" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm text-muted-foreground">{label}</p>
-                  <a
-                    href={href}
-                    className="block truncate text-lg font-semibold text-primary hover:underline"
-                  >
+                  <p className="font-mono text-label-sm uppercase tracking-wider text-on-surface-variant/70">
+                    {label}
+                  </p>
+                  <p className="truncate text-body-lg font-semibold text-on-surface">
                     {value}
-                  </a>
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                <ArrowRight className="size-5 text-on-surface-variant transition-transform group-hover:translate-x-1 group-hover:text-secondary" />
+              </a>
+            ))}
 
-        <div className="flex flex-col gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-              <span
-                aria-hidden="true"
-                className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent"
-              >
-                <MapPin className="size-5" />
-              </span>
-              <CardTitle className="text-xl">Khu vực phục vụ</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-base leading-relaxed">
-              <p>
-                FixNow phục vụ tận nơi trong bán kính 3–5km nội thành TP.HCM.
-                Khu vực ngoại thành vui lòng liên hệ trước.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Giờ làm việc: 8h00 – 20h00 hàng ngày.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">Bản đồ</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex h-40 items-center justify-center rounded-md bg-muted text-sm text-muted-foreground">
-                Bản đồ sẽ cập nhật sớm.
+            <div className="glass-panel fade-in-up stagger-2 rounded-2xl p-6">
+              <div className="flex items-start gap-4">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-surface-container-high/50 text-secondary">
+                  <MapPin className="size-5" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="text-label-md font-bold text-on-surface">Địa chỉ</p>
+                  <p className="mt-1 text-body-md text-on-surface-variant">
+                    {SITE.address}
+                  </p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+              <div className="mt-5 flex items-start gap-4">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-surface-container-high/50 text-secondary">
+                  <Clock className="size-5" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="text-label-md font-bold text-on-surface">Giờ làm việc</p>
+                  <p className="mt-1 text-body-md text-on-surface-variant">
+                    {SITE.hours} · {SITE.serviceRadius}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-      <div className="mt-10 rounded-lg border bg-muted/40 p-6 text-center md:p-8">
-        <h2 className="text-2xl font-bold">Cần sửa máy ngay?</h2>
-        <p className="mt-2 text-muted-foreground">
-          Đặt lịch online, kỹ thuật viên FixNow sẽ liên hệ xác nhận.
-        </p>
-        <Button asChild size="lg" className="mt-4">
-          <Link href="/booking">Đặt lịch</Link>
-        </Button>
-      </div>
-    </div>
+          {/* Right: map */}
+          <div className="fade-in-up stagger-1 flex flex-col gap-4">
+            <div className="glass-panel-heavy relative h-[380px] overflow-hidden rounded-2xl p-2 md:h-full md:min-h-[460px]">
+              <iframe
+                title={`Bản đồ FixNow — ${SITE.address}`}
+                src={mapEmbedSrc()}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+                className="h-full w-full rounded-xl border-0 [color-scheme:light]"
+              />
+            </div>
+            <a
+              href={mapDirectionsHref()}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-gradient glow-cta inline-flex items-center justify-center gap-2 rounded-xl px-7 py-4 font-mono text-label-md font-bold uppercase tracking-wider text-white"
+            >
+              <Navigation className="size-5" />
+              Chỉ đường tới FixNow
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="relative overflow-hidden border-t border-white/5 bg-surface-container-lowest py-16">
+        <div className="relative mx-auto flex max-w-container-max flex-col items-center justify-between gap-6 px-margin-mobile text-center md:flex-row md:px-margin-desktop md:text-left">
+          <div>
+            <h2 className="text-headline-sm text-on-surface">Cần sửa máy ngay?</h2>
+            <p className="mt-2 text-body-md text-on-surface-variant">
+              Đặt lịch online, kỹ thuật viên FixNow sẽ liên hệ xác nhận trong giờ
+              làm việc.
+            </p>
+          </div>
+          <Link
+            href="/booking"
+            className="btn-gradient glow-cta inline-flex items-center justify-center gap-2 rounded-xl px-9 py-4 font-mono text-label-md font-bold uppercase tracking-wider text-white"
+          >
+            Đặt lịch ngay <ArrowRight className="size-5" />
+          </Link>
+        </div>
+      </section>
+    </>
   );
 }

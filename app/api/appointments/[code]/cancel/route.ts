@@ -3,13 +3,20 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { appointmentCodeParamsSchema } from "@/lib/validations/booking";
 
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ code: string }> },
 ) {
   try {
-    const { code } = await params;
+    const parsedParams = appointmentCodeParamsSchema.safeParse(await params);
+    if (!parsedParams.success) {
+      return NextResponse.json(
+        { error: "validation", details: parsedParams.error.flatten() },
+        { status: 400 },
+      );
+    }
 
     const session = await auth();
     if (!session?.user?.id) {
@@ -17,7 +24,7 @@ export async function POST(
     }
 
     const appt = await db.query.appointments.findFirst({
-      where: eq(appointments.appointmentCode, code),
+      where: eq(appointments.appointmentCode, parsedParams.data.code),
       columns: { id: true, userId: true, status: true },
     });
 

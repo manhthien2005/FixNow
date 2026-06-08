@@ -8,7 +8,9 @@ import {
   CircleCheck,
   CircleDashed,
   CircleX,
+  Cpu,
   Layers,
+  Tag,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -144,6 +146,38 @@ export default async function AdminDashboardPage() {
         ))}
       </div>
 
+
+      {/* Content management quick links */}
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Link
+          href="/admin/parts"
+          className="group flex items-center gap-4 rounded-xl border bg-card p-5 transition-shadow hover:shadow-md"
+        >
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Cpu className="size-6" aria-hidden="true" />
+          </span>
+          <div>
+            <p className="font-semibold">Quản lý linh kiện</p>
+            <p className="text-sm text-muted-foreground">
+              Thêm / sửa / xóa linh kiện, tải ảnh
+            </p>
+          </div>
+        </Link>
+        <Link
+          href="/admin/services"
+          className="group flex items-center gap-4 rounded-xl border bg-card p-5 transition-shadow hover:shadow-md"
+        >
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Tag className="size-6" aria-hidden="true" />
+          </span>
+          <div>
+            <p className="font-semibold">Quản lý dịch vụ</p>
+            <p className="text-sm text-muted-foreground">
+              Thêm / sửa / xóa dịch vụ &amp; giá, tải ảnh
+            </p>
+          </div>
+        </Link>
+      </div>
       <Card className="mt-8">
         <CardHeader className="flex-row items-center justify-between gap-3 space-y-0">
           <div className="space-y-1">

@@ -2,10 +2,12 @@ import Link from "next/link";
 import {
   ChevronDown,
   ClipboardList,
+  Cpu,
   Home,
   LayoutDashboard,
   LogOut,
   Menu,
+  Tag,
 } from "lucide-react";
 
 import { auth } from "@/lib/auth";
@@ -61,6 +63,18 @@ export async function AdminTopbar() {
             <Link href="/admin/appointments">
               <ClipboardList className="size-4" />
               Lịch hẹn
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/admin/parts">
+              <Cpu className="size-4" />
+              Linh kiện
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/admin/services">
+              <Tag className="size-4" />
+              Dịch vụ
             </Link>
           </Button>
         </nav>
@@ -151,6 +165,30 @@ export async function AdminTopbar() {
                     <Link href="/admin/appointments">
                       <ClipboardList className="size-4" />
                       Lịch hẹn
+                    </Link>
+                  </Button>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="h-11 justify-start"
+                  >
+                    <Link href="/admin/parts">
+                      <Cpu className="size-4" />
+                      Linh kiện
+                    </Link>
+                  </Button>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="h-11 justify-start"
+                  >
+                    <Link href="/admin/services">
+                      <Tag className="size-4" />
+                      Dịch vụ
                     </Link>
                   </Button>
                 </SheetClose>

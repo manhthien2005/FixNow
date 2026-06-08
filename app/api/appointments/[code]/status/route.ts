@@ -5,6 +5,7 @@ import { appointments } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { isTransitionAllowed } from "@/lib/appointment-status";
 import { appointmentStatusUpdateSchema } from "@/lib/validations/admin";
+import { appointmentCodeParamsSchema } from "@/lib/validations/booking";
 
 export async function PATCH(
   req: NextRequest,
@@ -16,7 +17,13 @@ export async function PATCH(
       return NextResponse.json({ error: "forbidden" }, { status: 403 });
     }
 
-    const { code } = await params;
+    const parsedParams = appointmentCodeParamsSchema.safeParse(await params);
+    if (!parsedParams.success) {
+      return NextResponse.json(
+        { error: "validation", details: parsedParams.error.flatten() },
+        { status: 400 },
+      );
+    }
 
     const body: unknown = await req.json();
     const parsed = appointmentStatusUpdateSchema.safeParse(body);
@@ -28,7 +35,7 @@ export async function PATCH(
     }
 
     const appt = await db.query.appointments.findFirst({
-      where: eq(appointments.appointmentCode, code),
+      where: eq(appointments.appointmentCode, parsedParams.data.code),
       columns: { id: true, status: true },
     });
 

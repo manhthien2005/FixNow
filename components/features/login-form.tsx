@@ -71,7 +71,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
   const isSubmitting = form.formState.isSubmitting;
 
   return (
-    <Card>
+    <Card className="glass-panel border-white/10">
       <CardHeader className="space-y-2 text-center">
         <CardTitle className="text-2xl">Đăng nhập</CardTitle>
         <CardDescription>
@@ -96,7 +96,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
                       type="text"
                       autoComplete="username"
                       placeholder="0901234567"
-                      className="text-base"
+                      className="h-11 text-base"
                       {...field}
                     />
                   </FormControl>
@@ -109,12 +109,20 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mật khẩu</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Mật khẩu</FormLabel>
+                    <Link
+                      href="/forgot-password"
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      Quên mật khẩu?
+                    </Link>
+                  </div>
                   <FormControl>
                     <Input
                       type="password"
                       autoComplete="current-password"
-                      className="text-base"
+                      className="h-11 text-base"
                       {...field}
                     />
                   </FormControl>
@@ -124,7 +132,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
             />
             <Button
               type="submit"
-              className="w-full"
+              className="h-11 w-full"
               size="lg"
               disabled={isSubmitting}
             >

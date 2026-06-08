@@ -6,6 +6,7 @@ import type { NextAuthConfig } from "next-auth";
  * The full config (auth + providers) lives in lib/auth.ts.
  */
 export const authConfig = {
+  trustHost: true,
   pages: {
     signIn: "/login",
   },

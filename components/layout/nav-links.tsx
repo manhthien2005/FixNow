@@ -38,13 +38,15 @@ export function NavLinks({ variant = "desktop", className }: NavLinksProps) {
             aria-current={active ? "page" : undefined}
             className={cn(
               variant === "desktop"
-                ? "text-sm font-medium transition-colors hover:text-primary"
-                : "flex items-center min-h-11 rounded-md px-3 text-base font-medium transition-colors hover:bg-muted",
+                ? "relative text-sm font-medium transition-colors after:absolute after:-bottom-1.5 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-secondary after:transition-opacity"
+                : "flex min-h-11 items-center rounded-md px-3 text-base font-medium transition-colors hover:bg-surface-container-high",
               active
-                ? "text-primary"
+                ? variant === "desktop"
+                  ? "text-secondary after:opacity-100"
+                  : "text-secondary"
                 : variant === "desktop"
-                  ? "text-foreground/70"
-                  : "text-foreground",
+                  ? "text-on-surface-variant after:opacity-0 hover:text-on-surface"
+                  : "text-on-surface",
             )}
           >
             {item.label}

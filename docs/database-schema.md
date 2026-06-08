@@ -78,6 +78,7 @@ export const servicePrices = pgTable('service_prices', {
   serviceName: text('service_name').notNull(),
   priceFrom: text('price_from').notNull(),
   note: text('note'),
+  imagePath: text('image_path'),  // Supabase Storage path, null = repo fallback
   isActive: boolean('is_active').notNull().default(true),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -93,6 +94,7 @@ export const parts = pgTable('parts', {
   price: text('price').notNull(),
   warranty: text('warranty'),
   note: text('note'),
+  imagePath: text('image_path'),  // Supabase Storage path, null = repo fallback
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (t) => ({

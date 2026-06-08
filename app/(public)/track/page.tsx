@@ -2,22 +2,12 @@ import type { Metadata } from "next";
 import { and, eq } from "drizzle-orm";
 import { AlertCircle } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
 import { TrackForm } from "@/components/features/track-form";
+import { AppointmentDetail } from "@/components/features/appointments/appointment-detail";
 import { db } from "@/db";
 import { appointments } from "@/db/schema";
-import {
-  APPOINTMENT_STATUS_LABEL,
-  APPOINTMENT_STATUS_VARIANT,
-  DEVICE_TYPE_LABEL,
-} from "@/lib/labels";
-import { formatDateVi } from "@/lib/utils";
+import { STATUS_UI } from "@/lib/appointment-ui";
+import { GridBackdrop } from "@/components/marketing/grid-backdrop";
 
 export const metadata: Metadata = {
   title: "Tra cứu lịch hẹn",
@@ -31,7 +21,6 @@ interface TrackPageProps {
 
 export default async function TrackPage({ searchParams }: TrackPageProps) {
   const { phone, code } = await searchParams;
-
   const hasQuery = Boolean(phone && code);
 
   const appt = hasQuery
@@ -56,124 +45,71 @@ export default async function TrackPage({ searchParams }: TrackPageProps) {
       })
     : null;
 
+  const ui = appt ? STATUS_UI[appt.status] : null;
+
   return (
-    <div className="container mx-auto px-4 py-12 md:py-16">
-      <div className="mx-auto max-w-3xl">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold md:text-4xl">Tra cứu lịch hẹn</h1>
-          <p className="mt-3 text-muted-foreground">
-            Nhập số điện thoại và mã lịch hẹn để xem trạng thái xử lý.
+    <>
+      {/* Header */}
+      <section className="relative overflow-hidden border-b border-white/5 bg-background py-16 md:py-20">
+        <GridBackdrop />
+        <div aria-hidden className="absolute right-[12%] top-0 h-64 w-64 rounded-full bg-secondary/10 blur-[130px]" />
+        <div className="relative mx-auto max-w-3xl px-margin-mobile md:px-margin-desktop">
+          <p className="mb-3 font-mono text-label-sm uppercase tracking-widest text-secondary">
+            &gt; TRACK_ORDER
+          </p>
+          <h1 className="text-display-lg-mobile text-on-surface">
+            Tra cứu lịch hẹn
+          </h1>
+          <p className="mt-3 max-w-xl text-body-md text-on-surface-variant">
+            Nhập số điện thoại và mã lịch hẹn (FN-YYYY-XXXX) để xem trạng thái xử
+            lý — không cần đăng nhập.
           </p>
         </div>
+      </section>
 
-        <div className="mt-8">
+      {/* Form + result */}
+      <section className="relative bg-background py-10 md:py-14">
+        <div className="mx-auto max-w-3xl space-y-6 px-margin-mobile md:px-margin-desktop">
           <TrackForm defaultPhone={phone} defaultCode={code} />
-        </div>
 
-        {hasQuery && !appt ? (
-          <Card className="mt-6 border-destructive/40 bg-destructive/5">
-            <CardContent className="flex items-start gap-3 p-4 md:p-6">
-              <AlertCircle
-                aria-hidden="true"
-                className="mt-0.5 size-5 shrink-0 text-destructive"
-              />
+          {hasQuery && !appt ? (
+            <div className="glass-panel flex items-start gap-3 rounded-2xl border-destructive/30 bg-destructive/5 p-5">
+              <AlertCircle className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden="true" />
               <div>
-                <p className="font-semibold text-destructive">
+                <p className="font-semibold text-on-surface">
                   Không tìm thấy lịch hẹn
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Không tìm thấy lịch hẹn với SĐT và mã đã nhập. Vui lòng kiểm
-                  tra lại.
+                <p className="mt-1 text-body-md text-on-surface-variant">
+                  Không có lịch hẹn khớp với SĐT và mã đã nhập. Vui lòng kiểm tra
+                  lại.
                 </p>
               </div>
-            </CardContent>
-          </Card>
-        ) : null}
+            </div>
+          ) : null}
 
-        {appt ? (
-          <Card className="mt-6">
-            <CardHeader className="space-y-1">
-              <p className="text-sm text-muted-foreground">Mã lịch hẹn</p>
-              <p className="font-mono text-2xl font-bold text-primary md:text-3xl">
-                {appt.appointmentCode}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
-                <div className="sm:col-span-1">
-                  <dt className="text-sm text-muted-foreground">Tên khách</dt>
-                  <dd className="mt-1 text-base font-medium">
-                    {appt.customerName}
-                  </dd>
+          {appt && ui ? (
+            <>
+              <div className="glass-panel flex items-center justify-between gap-3 rounded-2xl p-5">
+                <div>
+                  <p className="font-mono text-label-sm uppercase tracking-wider text-on-surface-variant/60">
+                    Mã lịch hẹn
+                  </p>
+                  <p className="font-mono text-headline-sm font-bold text-on-surface">
+                    {appt.appointmentCode}
+                  </p>
                 </div>
-                <div className="sm:col-span-1">
-                  <dt className="text-sm text-muted-foreground">
-                    Số điện thoại
-                  </dt>
-                  <dd className="mt-1 text-base font-medium">{appt.phone}</dd>
-                </div>
-                <div className="sm:col-span-1">
-                  <dt className="text-sm text-muted-foreground">
-                    Loại thiết bị
-                  </dt>
-                  <dd className="mt-1 text-base font-medium">
-                    {DEVICE_TYPE_LABEL[appt.deviceType]}
-                  </dd>
-                </div>
-                <div className="sm:col-span-3">
-                  <dt className="text-sm text-muted-foreground">Địa chỉ</dt>
-                  <dd className="mt-1 text-base font-medium">
-                    {appt.address}
-                  </dd>
-                </div>
-                <div className="sm:col-span-3">
-                  <dt className="text-sm text-muted-foreground">
-                    Nhóm dịch vụ
-                  </dt>
-                  <dd className="mt-1 text-base font-medium">
-                    {appt.serviceGroup}
-                  </dd>
-                </div>
-                <div className="sm:col-span-3">
-                  <dt className="text-sm text-muted-foreground">Mô tả lỗi</dt>
-                  <dd className="mt-1 whitespace-pre-wrap break-words text-base">
-                    {appt.issueDescription}
-                  </dd>
-                </div>
-                <div className="sm:col-span-1">
-                  <dt className="text-sm text-muted-foreground">
-                    Thời gian mong muốn
-                  </dt>
-                  <dd className="mt-1 text-base font-medium">
-                    {appt.preferredTime
-                      ? formatDateVi(appt.preferredTime)
-                      : "Linh hoạt"}
-                  </dd>
-                </div>
-                <div className="sm:col-span-1">
-                  <dt className="text-sm text-muted-foreground">Ngày tạo</dt>
-                  <dd className="mt-1 text-base font-medium">
-                    {formatDateVi(appt.createdAt)}
-                  </dd>
-                </div>
-                <div className="sm:col-span-1">
-                  <dt className="text-sm text-muted-foreground">
-                    Cập nhật gần nhất
-                  </dt>
-                  <dd className="mt-1 text-base font-medium">
-                    {formatDateVi(appt.updatedAt)}
-                  </dd>
-                </div>
-              </dl>
-            </CardContent>
-            <CardFooter>
-              <Badge variant={APPOINTMENT_STATUS_VARIANT[appt.status]}>
-                {APPOINTMENT_STATUS_LABEL[appt.status]}
-              </Badge>
-            </CardFooter>
-          </Card>
-        ) : null}
-      </div>
-    </div>
+                <span
+                  className={`inline-flex w-max items-center gap-2 rounded-full border ${ui.border} ${ui.bg} px-4 py-2 font-mono text-label-md ${ui.text}`}
+                >
+                  <ui.icon className="size-4" aria-hidden="true" />
+                  {ui.label}
+                </span>
+              </div>
+              <AppointmentDetail appt={appt} />
+            </>
+          ) : null}
+        </div>
+      </section>
+    </>
   );
 }

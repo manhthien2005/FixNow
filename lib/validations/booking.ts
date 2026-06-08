@@ -1,6 +1,25 @@
 import { z } from "zod";
 import { phoneRegex } from "./auth";
 
+const appointmentCodeRegex = /^FN-\d{4}-\d{4}$/;
+
+export const appointmentCodeSchema = z
+  .string()
+  .trim()
+  .transform((value) => value.toUpperCase())
+  .refine((value) => appointmentCodeRegex.test(value), {
+    message: "Mã lịch hẹn phải có dạng FN-YYYY-XXXX",
+  });
+
+export const appointmentCodeParamsSchema = z.object({
+  code: appointmentCodeSchema,
+});
+
+export const appointmentTrackQuerySchema = z.object({
+  phone: z.string().trim().regex(phoneRegex, "Số điện thoại không hợp lệ"),
+  code: appointmentCodeSchema,
+});
+
 export const bookingSchema = z.object({
   customerName: z
     .string()
@@ -26,4 +45,6 @@ export const bookingSchema = z.object({
     .or(z.literal("")),
 });
 
+export type AppointmentCodeParams = z.infer<typeof appointmentCodeParamsSchema>;
+export type AppointmentTrackQuery = z.infer<typeof appointmentTrackQuerySchema>;
 export type BookingInput = z.infer<typeof bookingSchema>;

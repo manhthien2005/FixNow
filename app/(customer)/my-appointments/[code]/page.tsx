@@ -4,24 +4,13 @@ import { notFound } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { ArrowLeft } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
 import { CancelAppointmentButton } from "@/components/features/cancel-appointment-button";
+import { AppointmentDetail } from "@/components/features/appointments/appointment-detail";
 import { db } from "@/db";
 import { appointments } from "@/db/schema";
 import { auth } from "@/lib/auth";
-import {
-  APPOINTMENT_STATUS_LABEL,
-  APPOINTMENT_STATUS_VARIANT,
-  DEVICE_TYPE_LABEL,
-} from "@/lib/labels";
-import { formatDateVi } from "@/lib/utils";
+import { STATUS_UI } from "@/lib/appointment-ui";
+import { GridBackdrop } from "@/components/marketing/grid-backdrop";
 
 interface AppointmentDetailPageProps {
   params: Promise<{ code: string }>;
@@ -42,10 +31,7 @@ export default async function AppointmentDetailPage({
 }: AppointmentDetailPageProps) {
   const { code } = await params;
   const session = await auth();
-
-  if (!session?.user?.id) {
-    notFound();
-  }
+  if (!session?.user?.id) notFound();
 
   const appt = await db.query.appointments.findFirst({
     where: and(
@@ -67,108 +53,67 @@ export default async function AppointmentDetailPage({
     },
   });
 
-  if (!appt) {
-    notFound();
-  }
+  if (!appt) notFound();
 
+  const ui = STATUS_UI[appt.status];
+  const StatusIcon = ui.icon;
   const canCancel = appt.status === "RECEIVED";
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-8 md:py-12">
-      <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
-        <Link href="/my-appointments">
-          <ArrowLeft className="mr-2 size-4" />
-          Quay lại danh sách
-        </Link>
-      </Button>
+    <>
+      {/* Header */}
+      <section className="relative overflow-hidden border-b border-white/5 bg-background py-12 md:py-16">
+        <GridBackdrop />
+        <div aria-hidden className={`absolute right-[12%] top-0 h-56 w-56 rounded-full blur-[130px] ${ui.bg}`} />
+        <div className="relative mx-auto max-w-3xl px-margin-mobile md:px-margin-desktop">
+          <Link
+            href="/my-appointments"
+            className="mb-6 inline-flex items-center gap-2 font-mono text-label-sm uppercase tracking-wider text-on-surface-variant transition-colors hover:text-secondary"
+          >
+            <ArrowLeft className="size-4" />
+            Danh sách lịch hẹn
+          </Link>
 
-      <Card>
-        <CardHeader className="space-y-3">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Mã lịch hẹn</p>
-              <p className="font-mono text-2xl font-bold text-primary md:text-3xl">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="font-mono text-label-sm uppercase tracking-widest text-on-surface-variant/60">
+                Mã lịch hẹn
+              </p>
+              <p className="font-mono text-display-lg-mobile font-bold text-on-surface">
                 {appt.appointmentCode}
               </p>
             </div>
-            <Badge
-              variant={APPOINTMENT_STATUS_VARIANT[appt.status]}
-              className="w-fit"
+            <span
+              className={`inline-flex w-max items-center gap-2 rounded-full border ${ui.border} ${ui.bg} px-4 py-2 font-mono text-label-md ${ui.text}`}
             >
-              {APPOINTMENT_STATUS_LABEL[appt.status]}
-            </Badge>
+              <StatusIcon className="size-4" aria-hidden="true" />
+              {ui.label}
+            </span>
           </div>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
-            <div className="sm:col-span-1">
-              <dt className="text-sm text-muted-foreground">Tên khách</dt>
-              <dd className="mt-1 text-base font-medium">
-                {appt.customerName}
-              </dd>
-            </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm text-muted-foreground">Số điện thoại</dt>
-              <dd className="mt-1 text-base font-medium">{appt.phone}</dd>
-            </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm text-muted-foreground">Loại thiết bị</dt>
-              <dd className="mt-1 text-base font-medium">
-                {DEVICE_TYPE_LABEL[appt.deviceType]}
-              </dd>
-            </div>
-            <div className="sm:col-span-3">
-              <dt className="text-sm text-muted-foreground">Địa chỉ</dt>
-              <dd className="mt-1 text-base font-medium">{appt.address}</dd>
-            </div>
-            <div className="sm:col-span-3">
-              <dt className="text-sm text-muted-foreground">Nhóm dịch vụ</dt>
-              <dd className="mt-1 text-base font-medium">
-                {appt.serviceGroup}
-              </dd>
-            </div>
-            <div className="sm:col-span-3">
-              <dt className="text-sm text-muted-foreground">Mô tả lỗi</dt>
-              <dd className="mt-1 whitespace-pre-wrap break-words text-base">
-                {appt.issueDescription}
-              </dd>
-            </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm text-muted-foreground">
-                Thời gian mong muốn
-              </dt>
-              <dd className="mt-1 text-base font-medium">
-                {appt.preferredTime
-                  ? formatDateVi(appt.preferredTime)
-                  : "Linh hoạt"}
-              </dd>
-            </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm text-muted-foreground">Ngày tạo</dt>
-              <dd className="mt-1 text-base font-medium">
-                {formatDateVi(appt.createdAt)}
-              </dd>
-            </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm text-muted-foreground">
-                Cập nhật gần nhất
-              </dt>
-              <dd className="mt-1 text-base font-medium">
-                {formatDateVi(appt.updatedAt)}
-              </dd>
-            </div>
-          </dl>
-        </CardContent>
-        <CardFooter className="flex flex-col items-start gap-3 border-t pt-6 sm:flex-row sm:items-center sm:justify-between">
-          {canCancel ? (
-            <CancelAppointmentButton code={appt.appointmentCode} />
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Lịch hẹn không thể huỷ ở trạng thái hiện tại.
-            </p>
-          )}
-        </CardFooter>
-      </Card>
-    </div>
+        </div>
+      </section>
+
+      <section className="relative bg-background py-10 md:py-14">
+        <div className="mx-auto max-w-3xl space-y-6 px-margin-mobile md:px-margin-desktop">
+          <AppointmentDetail appt={appt} />
+
+          {/* Cancel */}
+          <div className="flex flex-col items-start gap-3 border-t border-white/5 pt-6 sm:flex-row sm:items-center sm:justify-between">
+            {canCancel ? (
+              <>
+                <p className="text-body-md text-on-surface-variant">
+                  Bạn có thể huỷ khi lịch hẹn còn ở trạng thái “Đã nhận”.
+                </p>
+                <CancelAppointmentButton code={appt.appointmentCode} />
+              </>
+            ) : (
+              <p className="text-body-md text-on-surface-variant">
+                Lịch hẹn không thể huỷ ở trạng thái hiện tại.
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
