@@ -32,8 +32,19 @@ export const authConfig = {
       const isOnAdmin = nextUrl.pathname.startsWith("/admin");
       const isOnCustomerProtected =
         nextUrl.pathname.startsWith("/my-appointments") ||
-        nextUrl.pathname.startsWith("/account") ||
-        nextUrl.pathname.startsWith("/book");
+        nextUrl.pathname.startsWith("/account");
+      const isOnAuthPage =
+        nextUrl.pathname.startsWith("/login") ||
+        nextUrl.pathname.startsWith("/register");
+
+      // Logged-in users on auth pages → redirect to callbackUrl or /
+      if (isOnAuthPage) {
+        if (isLoggedIn) {
+          const callbackUrl = nextUrl.searchParams.get("callbackUrl") ?? "/";
+          return Response.redirect(new URL(callbackUrl, nextUrl));
+        }
+        return true;
+      }
 
       if (isOnAdmin) {
         if (isLoggedIn && role === "ADMIN") return true;
@@ -42,6 +53,7 @@ export const authConfig = {
       if (isOnCustomerProtected) {
         return isLoggedIn;
       }
+      // /booking is intentionally NOT protected — hybrid per docs/decisions.md
       return true;
     },
   },
