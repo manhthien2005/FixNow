@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { like } from "drizzle-orm";
+import { and, desc, eq, ilike, like, or, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { adminListFilterSchema } from "@/lib/validations/admin";
 import { bookingSchema } from "@/lib/validations/booking";
 
 const MAX_CODE_RETRY = 5;
@@ -80,6 +81,75 @@ export async function POST(req: NextRequest) {
     throw new Error("appointment_code_generation_failed");
   } catch (error) {
     console.error("[POST /api/appointments]", error);
+    return NextResponse.json({ error: "internal" }, { status: 500 });
+  }
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
+
+    const url = new URL(req.url);
+    const parsed = adminListFilterSchema.safeParse(
+      Object.fromEntries(url.searchParams),
+    );
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "validation", details: parsed.error.flatten() },
+        { status: 400 },
+      );
+    }
+
+    const { status, q, limit, offset } = parsed.data;
+
+    let statusFilter: SQL | undefined;
+    let searchFilter: SQL | undefined;
+
+    if (status) {
+      statusFilter = eq(appointments.status, status);
+    }
+    if (q) {
+      const escaped = q.replace(/[%_\\]/g, "\\$&");
+      const pattern = `%${escaped}%`;
+      searchFilter = or(
+        ilike(appointments.appointmentCode, pattern),
+        ilike(appointments.phone, pattern),
+      );
+    }
+
+    const where = and(statusFilter, searchFilter);
+
+    const [total, rows] = await Promise.all([
+      db.$count(appointments, where),
+      db.query.appointments.findMany({
+        where,
+        orderBy: [desc(appointments.createdAt)],
+        limit,
+        offset,
+        columns: {
+          appointmentCode: true,
+          customerName: true,
+          phone: true,
+          deviceType: true,
+          serviceGroup: true,
+          status: true,
+          createdAt: true,
+          userId: true,
+        },
+      }),
+    ]);
+
+    return NextResponse.json({
+      appointments: rows,
+      total,
+      limit,
+      offset,
+    });
+  } catch (error) {
+    console.error("[GET /api/appointments]", error);
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 }

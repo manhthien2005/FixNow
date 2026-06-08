@@ -38,7 +38,7 @@ Use these for any non-trivial work:
 - [x] Auth pages (login, register) + POST /api/auth/register (bcrypt, unique check, normalize email)
 - [ ] Booking flow (form → POST → appointment code)
 - [x] My appointments + detail + cancel button (POST /api/appointments/[code]/cancel)
-- [ ] Admin panel
+- [x] Admin panel: /admin dashboard (5 stat cards + recent), /admin/appointments (filter + paginate), detail + status changer (state-machine RECEIVED → IN_PROGRESS → COMPLETED with CANCELLED escape). GET + PATCH /api/appointments. Topbar layout với role badge.
 - [ ] Responsive QA pass
 
 **DB connection notes (Supabase):**

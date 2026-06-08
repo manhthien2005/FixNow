@@ -48,6 +48,10 @@ export const authConfig = {
 
       if (isOnAdmin) {
         if (isLoggedIn && role === "ADMIN") return true;
+        // Logged-in non-admin → send to home instead of login (better UX)
+        if (isLoggedIn) {
+          return Response.redirect(new URL("/", nextUrl));
+        }
         return false;
       }
       if (isOnCustomerProtected) {
