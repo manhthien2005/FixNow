@@ -1,3 +1,4 @@
+import { ChatWidget } from "@/components/features/chat/chat-widget";
 import { FloatingContact } from "@/components/layout/floating-contact";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
@@ -15,6 +16,7 @@ export default function PublicLayout({
       </main>
       <Footer />
       <FloatingContact />
+      <ChatWidget />
     </>
   );
 }

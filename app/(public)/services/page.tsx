@@ -199,15 +199,17 @@ export default async function ServicesPage() {
                   className={`glass-panel fade-in-up stagger-${i % 4} group relative flex flex-col overflow-hidden rounded-2xl transition-colors ${a.border}`}
                 >
                   {/* Image header */}
-                  <div className="relative aspect-[16/10] overflow-hidden">
-                    <Image
-                      src={image}
-                      alt={title}
-                      fill
-                      sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw"
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-surface-container/95 via-surface-container/30 to-transparent" />
+                  <div className="relative aspect-[16/10]">
+                    <div className="absolute inset-0 overflow-hidden">
+                      <Image
+                        src={image}
+                        alt={title}
+                        fill
+                        sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-surface-container/95 via-surface-container/30 to-transparent" />
+                    </div>
                     <span className="absolute right-4 top-4 font-mono text-label-sm text-on-surface-variant">
                       {String(i + 1).padStart(2, "0")}
                     </span>

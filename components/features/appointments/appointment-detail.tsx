@@ -6,6 +6,7 @@ import {
   MapPin,
   Phone,
   RefreshCw,
+  Tag,
   UserRound,
   Wrench,
   type LucideIcon,
@@ -27,6 +28,9 @@ export interface AppointmentDetailData {
   issueDescription: string;
   preferredTime: Date | string | null;
   status: AppointmentStatus;
+  discountPercent: number;
+  discountReason: string | null;
+  verificationDiscountApplied: boolean;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -164,10 +168,19 @@ export async function AppointmentDetail({
         <InfoTile icon={Wrench} label={dictionary.booking.serviceGroup}>
           {getServiceGroupLabel(appt.serviceGroup, locale)}
         </InfoTile>
+        {appt.verificationDiscountApplied ? (
+          <InfoTile icon={Tag} label={locale === "vi" ? "Ưu đãi" : "Discount"}>
+            <span className="font-semibold text-secondary">
+              -{appt.discountPercent}% ·{" "}
+              {appt.discountReason ??
+                (locale === "vi" ? "Ưu đãi xác thực" : "Verified discount")}
+            </span>
+          </InfoTile>
+        ) : null}
         <InfoTile
           icon={CalendarClock}
           label={dictionary.booking.preferredTime}
-          className="sm:col-span-2"
+          className={appt.verificationDiscountApplied ? "" : "sm:col-span-2"}
         >
           {appt.preferredTime
             ? formatDateByLocale(appt.preferredTime, locale)

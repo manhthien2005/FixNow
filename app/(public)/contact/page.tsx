@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import {
   ArrowRight,
   Clock,
+  Globe,
   Mail,
   MapPin,
   MessageCircle,
@@ -40,6 +41,7 @@ const METHODS: {
   { icon: Phone, label: "Hotline", value: SITE.hotline.label, href: SITE.hotline.href, accent: "secondary" },
   { icon: MessageCircle, label: "Zalo OA", value: SITE.zalo.label, href: SITE.zalo.href, accent: "primary" },
   { icon: Mail, label: "Email", value: SITE.email.label, href: SITE.email.href, accent: "tertiary" },
+  { icon: Globe, label: "Facebook", value: SITE.facebook.label, href: SITE.facebook.href, accent: "secondary" },
 ];
 
 export default async function ContactPage() {

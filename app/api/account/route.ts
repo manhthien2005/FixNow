@@ -24,25 +24,44 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const email = parsed.data.email ? parsed.data.email : null;
+    const email = parsed.data.email;
+
+    // Read the current email so we can invalidate verification if it changes.
+    const current = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: { email: true },
+    });
 
     // Enforce email uniqueness (excluding the current user).
-    if (email) {
-      const clash = await db.query.users.findFirst({
-        where: and(eq(users.email, email), ne(users.id, userId)),
-        columns: { id: true },
-      });
-      if (clash) {
-        return NextResponse.json(
-          { error: "email_taken", message: "Email đã được sử dụng." },
-          { status: 409 },
-        );
-      }
+    const clash = await db.query.users.findFirst({
+      where: and(eq(users.email, email), ne(users.id, userId)),
+      columns: { id: true },
+    });
+    if (clash) {
+      return NextResponse.json(
+        { error: "email_taken", message: "Email đã được sử dụng." },
+        { status: 409 },
+      );
     }
+
+    const emailChanged = current?.email !== email;
 
     const [row] = await db
       .update(users)
-      .set({ fullName: parsed.data.fullName, email })
+      .set({
+        fullName: parsed.data.fullName,
+        email,
+        // Changing email invalidates any prior email verification.
+        ...(emailChanged
+          ? {
+              emailVerifiedAt: null,
+              emailVerificationCodeHash: null,
+              emailVerificationExpiresAt: null,
+              emailVerificationAttempts: 0,
+              emailVerificationSentAt: null,
+            }
+          : {}),
+      })
       .where(eq(users.id, userId))
       .returning({
         fullName: users.fullName,

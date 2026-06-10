@@ -7,6 +7,8 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Settings,
+  ShieldCheck,
   Tag,
 } from "lucide-react";
 
@@ -82,6 +84,18 @@ export async function AdminTopbar() {
             <Link href="/admin/services">
               <Tag className="size-4" />
               {dictionary.adminNav.services}
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/admin/verifications">
+              <ShieldCheck className="size-4" />
+              {dictionary.adminNav.verifications}
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/admin/settings">
+              <Settings className="size-4" />
+              {dictionary.adminNav.settings}
             </Link>
           </Button>
         </nav>
@@ -213,6 +227,30 @@ export async function AdminTopbar() {
                     <Link href="/admin/services">
                       <Tag className="size-4" />
                       {dictionary.adminNav.services}
+                    </Link>
+                  </Button>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="h-11 justify-start"
+                  >
+                    <Link href="/admin/verifications">
+                      <ShieldCheck className="size-4" />
+                      {dictionary.adminNav.verifications}
+                    </Link>
+                  </Button>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="h-11 justify-start"
+                  >
+                    <Link href="/admin/settings">
+                      <Settings className="size-4" />
+                      {dictionary.adminNav.settings}
                     </Link>
                   </Button>
                 </SheetClose>

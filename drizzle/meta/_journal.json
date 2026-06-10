@@ -15,6 +15,27 @@
       "when": 1780919639196,
       "tag": "0001_exotic_wendigo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780942598662,
+      "tag": "0002_lively_quentin_quire",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1781095966716,
+      "tag": "0003_wise_master_chief",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1781099919078,
+      "tag": "0004_numerous_night_thrasher",
+      "breakpoints": true
     }
   ]
 }

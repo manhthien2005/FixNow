@@ -39,6 +39,9 @@ export async function GET(
         createdAt: true,
         updatedAt: true,
         userId: true,
+        discountPercent: true,
+        discountReason: true,
+        verificationDiscountApplied: true,
       },
     });
 

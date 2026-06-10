@@ -5,7 +5,7 @@ import { Info } from "lucide-react";
 
 import { db } from "@/db";
 import { parts } from "@/db/schema";
-import { PartsExplorer } from "@/components/features/parts-explorer";
+import { PartsExplorerLazy } from "@/components/features/parts-explorer-lazy";
 import { GridBackdrop } from "@/components/marketing/grid-backdrop";
 import { ScrollReveal } from "@/components/features/home/scroll-reveal";
 import { getLocale } from "@/lib/i18n-server";
@@ -75,7 +75,7 @@ export default async function PartsPage() {
       {/* Explorer (search + filter + grid) */}
       <section className="relative overflow-hidden bg-background py-12 md:py-16">
         <div className="relative mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
-          <PartsExplorer parts={items} />
+          <PartsExplorerLazy parts={items} />
         </div>
       </section>
     </>

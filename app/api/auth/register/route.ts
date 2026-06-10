@@ -18,11 +18,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { fullName, phone, password } = parsed.data;
-    const email =
-      parsed.data.email === undefined || parsed.data.email === ""
-        ? null
-        : parsed.data.email;
+    const { fullName, phone, email, password } = parsed.data;
 
     const existingPhone = await db.query.users.findFirst({
       where: eq(users.phone, phone),
@@ -32,14 +28,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "phone_taken" }, { status: 409 });
     }
 
-    if (email !== null) {
-      const existingEmail = await db.query.users.findFirst({
-        where: eq(users.email, email),
-        columns: { id: true },
-      });
-      if (existingEmail) {
-        return NextResponse.json({ error: "email_taken" }, { status: 409 });
-      }
+    const existingEmail = await db.query.users.findFirst({
+      where: eq(users.email, email),
+      columns: { id: true },
+    });
+    if (existingEmail) {
+      return NextResponse.json({ error: "email_taken" }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);

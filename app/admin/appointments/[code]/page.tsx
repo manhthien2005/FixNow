@@ -61,6 +61,9 @@ export default async function AdminAppointmentDetailPage({
       createdAt: true,
       updatedAt: true,
       userId: true,
+      discountPercent: true,
+      discountReason: true,
+      verificationDiscountApplied: true,
     },
   });
 
@@ -142,6 +145,18 @@ export default async function AdminAppointmentDetailPage({
                 {getServiceGroupLabel(appt.serviceGroup, locale)}
               </dd>
             </div>
+            {appt.verificationDiscountApplied ? (
+              <div className="md:col-span-2">
+                <dt className="text-sm text-muted-foreground">
+                  {isVi ? "Ưu đãi" : "Discount"}
+                </dt>
+                <dd className="mt-1 text-base font-medium text-primary">
+                  -{appt.discountPercent}% ·{" "}
+                  {appt.discountReason ??
+                    (isVi ? "Ưu đãi xác thực" : "Verified discount")}
+                </dd>
+              </div>
+            ) : null}
             <div className="md:col-span-2">
               <dt className="text-sm text-muted-foreground">
                 {dictionary.booking.issue}

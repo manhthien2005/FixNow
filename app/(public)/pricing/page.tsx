@@ -20,6 +20,7 @@ import { servicePrices, type ServicePrice } from "@/db/schema";
 import { GridBackdrop } from "@/components/marketing/grid-backdrop";
 import { ScrollReveal } from "@/components/features/home/scroll-reveal";
 import { getLocale } from "@/lib/i18n-server";
+import { localizeServicePrice } from "@/lib/catalog-i18n";
 
 export const metadata: Metadata = {
   title: "Bảng giá",
@@ -101,8 +102,8 @@ const FALLBACK = {
 };
 
 function priceClass(price: string): string {
-  if (/miễn phí/i.test(price)) return "text-secondary";
-  if (/^\s*từ/i.test(price)) return "text-primary";
+  if (/miễn phí|free/i.test(price)) return "text-secondary";
+  if (/^\s*(từ|from)/i.test(price)) return "text-primary";
   return "text-tertiary";
 }
 
@@ -202,6 +203,7 @@ export default async function PricingPage() {
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {group.items.map((service, i) => {
+                    const localizedService = localizeServicePrice(service, locale);
                     const CatIcon = group.cat.icon;
                     return (
                       <article
@@ -226,16 +228,20 @@ export default async function PricingPage() {
                         {/* Body */}
                         <div className="flex flex-1 flex-col gap-3 p-6">
                           <h3 className="text-body-lg font-semibold leading-snug text-on-surface">
-                            {service.serviceName}
+                            {localizedService.serviceName}
                           </h3>
-                          {service.note ? (
+                          {localizedService.note ? (
                             <p className="text-body-md text-on-surface-variant">
-                              {service.note}
+                              {localizedService.note}
                             </p>
                           ) : null}
                           <div className="mt-auto flex items-end justify-between border-t border-border pt-4">
-                            <span className={`text-headline-sm font-bold ${priceClass(service.priceFrom)}`}>
-                              {service.priceFrom}
+                            <span
+                              className={`text-headline-sm font-bold ${priceClass(
+                                localizedService.priceFrom,
+                              )}`}
+                            >
+                              {localizedService.priceFrom}
                             </span>
                             <Link
                               href="/booking"

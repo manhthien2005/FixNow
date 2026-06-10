@@ -45,6 +45,9 @@ export default async function TrackPage({ searchParams }: TrackPageProps) {
           status: true,
           createdAt: true,
           updatedAt: true,
+          discountPercent: true,
+          discountReason: true,
+          verificationDiscountApplied: true,
         },
       })
     : null;

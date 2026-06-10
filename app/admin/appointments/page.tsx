@@ -98,6 +98,8 @@ export default async function AdminAppointmentsPage({
         status: true,
         createdAt: true,
         userId: true,
+        verificationDiscountApplied: true,
+        discountPercent: true,
       },
     }),
   ]);
@@ -182,6 +184,14 @@ export default async function AdminAppointmentsPage({
                             {isVi ? "Khách lẻ" : "Guest"}
                           </Badge>
                         ) : null}
+                        {appt.verificationDiscountApplied ? (
+                          <Badge
+                            variant="outline"
+                            className="w-fit text-[10px] uppercase"
+                          >
+                            -{appt.discountPercent}%
+                          </Badge>
+                        ) : null}
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-sm">
@@ -244,6 +254,11 @@ export default async function AdminAppointmentsPage({
                         className="text-[10px] uppercase"
                       >
                         {isVi ? "Khách lẻ" : "Guest"}
+                      </Badge>
+                    ) : null}
+                    {appt.verificationDiscountApplied ? (
+                      <Badge variant="outline" className="text-[10px] uppercase">
+                        -{appt.discountPercent}%
                       </Badge>
                     ) : null}
                   </div>

@@ -24,6 +24,8 @@ export type AppointmentListItem = {
   serviceGroup: string;
   status: AppointmentStatus;
   createdAt: string; // ISO
+  discountPercent: number;
+  verificationDiscountApplied: boolean;
 };
 
 type StatusFilter = "ALL" | AppointmentStatus;
@@ -180,6 +182,12 @@ export function MyAppointmentsList({
                     {dictionary.labels.appointmentStatus[appt.status]}
                   </span>
                 </div>
+                {appt.verificationDiscountApplied ? (
+                  <span className="ml-2 mt-3 inline-flex rounded-full border border-secondary/30 px-3 py-1 font-mono text-label-sm uppercase tracking-wider text-secondary">
+                    -{appt.discountPercent}%{" "}
+                    {locale === "vi" ? "ưu đãi" : "discount"}
+                  </span>
+                ) : null}
 
                 <div className="mt-4 grid grid-cols-1 gap-3 pl-2 sm:grid-cols-2">
                   <div className="flex items-center gap-2.5">

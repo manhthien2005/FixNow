@@ -1,15 +1,18 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { ClipboardList, Mail, Phone, ShieldCheck } from "lucide-react";
 
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { userAddresses, userVerifications, users } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { GridBackdrop } from "@/components/marketing/grid-backdrop";
 import { ScrollReveal } from "@/components/features/home/scroll-reveal";
 import { AccountForms } from "@/components/features/account/account-forms";
+import { AddressBook } from "@/components/features/account/address-book";
+import { VerificationPanel } from "@/components/features/account/verification-panel";
+import { EmailVerificationPanel } from "@/components/features/account/email-verification-panel";
 import { getDictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
 
@@ -26,9 +29,42 @@ export default async function AccountPage() {
 
   const user = await db.query.users.findFirst({
     where: eq(users.id, session.user.id),
-    columns: { fullName: true, phone: true, email: true, role: true, createdAt: true },
+    columns: {
+      fullName: true,
+      phone: true,
+      email: true,
+      role: true,
+      createdAt: true,
+      verificationDiscountUsedAt: true,
+      emailVerifiedAt: true,
+    },
   });
   if (!user) redirect("/login");
+
+  const latestVerification = await db.query.userVerifications.findFirst({
+    where: eq(userVerifications.userId, session.user.id),
+    orderBy: [desc(userVerifications.createdAt)],
+    columns: {
+      subject: true,
+      organization: true,
+      identifier: true,
+      status: true,
+      rejectReason: true,
+      createdAt: true,
+      reviewedAt: true,
+    },
+  });
+
+  const addresses = await db.query.userAddresses.findMany({
+    where: eq(userAddresses.userId, session.user.id),
+    orderBy: [desc(userAddresses.isDefault), asc(userAddresses.createdAt)],
+    columns: {
+      id: true,
+      label: true,
+      address: true,
+      isDefault: true,
+    },
+  });
 
   const initials = user.fullName
     .split(" ")
@@ -88,8 +124,17 @@ export default async function AccountPage() {
 
       {/* Forms */}
       <section className="relative bg-background py-12 md:py-16">
-        <div className="fade-in-up mx-auto max-w-5xl px-margin-mobile md:px-margin-desktop">
-          <AccountForms fullName={user.fullName} email={user.email ?? ""} />
+        <div className="fade-in-up mx-auto flex max-w-5xl flex-col gap-6 px-margin-mobile md:px-margin-desktop">
+          <EmailVerificationPanel
+            email={user.email}
+            verified={Boolean(user.emailVerifiedAt)}
+          />
+          <VerificationPanel
+            latest={latestVerification ?? null}
+            discountUsedAt={user.verificationDiscountUsedAt}
+          />
+          <AddressBook initial={addresses} />
+          <AccountForms fullName={user.fullName} email={user.email} />
         </div>
       </section>
     </>

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { and, desc, eq, ilike, like, or, type SQL } from "drizzle-orm";
+import { and, desc, eq, ilike, isNull, like, or, type SQL } from "drizzle-orm";
 import { db } from "@/db";
-import { appointments } from "@/db/schema";
+import { appointments, userVerifications, users } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { adminListFilterSchema } from "@/lib/validations/admin";
 import { bookingApiSchema } from "@/lib/validations/booking";
+import { getVerificationDiscountPercent } from "@/lib/settings";
 
 const MAX_CODE_RETRY = 5;
 
@@ -38,6 +39,10 @@ export async function POST(req: NextRequest) {
     const session = await auth();
     const userId = session?.user?.id ?? null;
 
+    const wantsDiscount =
+      Boolean(parsed.data.useVerificationDiscount) && userId !== null;
+    const discountPercent = await getVerificationDiscountPercent();
+
     const preferredTimeDate = parsed.data.preferredTime
       ? new Date(parsed.data.preferredTime)
       : null;
@@ -45,33 +50,75 @@ export async function POST(req: NextRequest) {
     const year = new Date().getFullYear();
 
     for (let attempt = 1; attempt <= MAX_CODE_RETRY; attempt++) {
-      const count = await db.$count(
-        appointments,
-        like(appointments.appointmentCode, `FN-${year}-%`),
-      );
-      const code = `FN-${year}-${String(count + 1).padStart(4, "0")}`;
-
       try {
-        const [row] = await db
-          .insert(appointments)
-          .values({
-            appointmentCode: code,
-            userId,
-            customerName: parsed.data.customerName,
-            phone: parsed.data.phone,
-            address: parsed.data.address,
-            deviceType: parsed.data.deviceType,
-            serviceGroup: parsed.data.serviceGroup,
-            issueDescription: parsed.data.issueDescription,
-            preferredTime: preferredTimeDate,
-            status: "RECEIVED",
-          })
-          .returning({
-            id: appointments.id,
-            appointmentCode: appointments.appointmentCode,
-          });
+        const result = await db.transaction(async (tx) => {
+          const count = await tx.$count(
+            appointments,
+            like(appointments.appointmentCode, `FN-${year}-%`),
+          );
+          const code = `FN-${year}-${String(count + 1).padStart(4, "0")}`;
+          const now = new Date();
 
-        return NextResponse.json({ appointment: row }, { status: 201 });
+          // Best-effort discount: never fail the booking because of it.
+          let discountApplied = false;
+          if (wantsDiscount && userId && discountPercent > 0) {
+            const approved = await tx.query.userVerifications.findFirst({
+              where: and(
+                eq(userVerifications.userId, userId),
+                eq(userVerifications.status, "APPROVED"),
+              ),
+              columns: { id: true },
+            });
+            if (approved) {
+              const [updated] = await tx
+                .update(users)
+                .set({ verificationDiscountUsedAt: now, updatedAt: now })
+                .where(
+                  and(
+                    eq(users.id, userId),
+                    isNull(users.verificationDiscountUsedAt),
+                  ),
+                )
+                .returning({ id: users.id });
+              discountApplied = Boolean(updated);
+            }
+          }
+
+          const [inserted] = await tx
+            .insert(appointments)
+            .values({
+              appointmentCode: code,
+              userId,
+              customerName: parsed.data.customerName,
+              phone: parsed.data.phone,
+              address: parsed.data.address,
+              deviceType: parsed.data.deviceType,
+              serviceGroup: parsed.data.serviceGroup,
+              issueDescription: parsed.data.issueDescription,
+              preferredTime: preferredTimeDate,
+              status: "RECEIVED",
+              discountPercent: discountApplied ? discountPercent : 0,
+              discountReason: discountApplied
+                ? "Ưu đãi xác thực học sinh/sinh viên/nhân viên"
+                : null,
+              verificationDiscountApplied: discountApplied,
+            })
+            .returning({
+              id: appointments.id,
+              appointmentCode: appointments.appointmentCode,
+            });
+
+          return { appointment: inserted, discountApplied };
+        });
+
+        return NextResponse.json(
+          {
+            appointment: result.appointment,
+            discountApplied: result.discountApplied,
+            discountRequested: wantsDiscount,
+          },
+          { status: 201 },
+        );
       } catch (err) {
         if (isPgUniqueViolation(err) && attempt < MAX_CODE_RETRY) continue;
         throw err;
@@ -138,6 +185,8 @@ export async function GET(req: NextRequest) {
           status: true,
           createdAt: true,
           userId: true,
+          verificationDiscountApplied: true,
+          discountPercent: true,
         },
       }),
     ]);

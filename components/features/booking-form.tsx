@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { MapPin, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -47,20 +49,39 @@ import {
 } from "@/lib/input-normalizers";
 import { useI18n } from "@/components/i18n/language-provider";
 
+export interface SavedAddress {
+  id: string;
+  label: string | null;
+  address: string;
+  isDefault: boolean;
+}
+
 interface BookingFormProps {
   defaultValues?: Partial<BookingInput>;
+  discountEligible?: boolean;
+  discountPercent?: number;
+  savedAddresses?: SavedAddress[];
 }
 
 type FieldErrorMap = Partial<Record<keyof BookingInput, string[]>>;
+
+const DRAFT_STORAGE_KEY = "fixnow:booking-draft";
 
 const DEVICE_TYPE_OPTIONS = Object.entries(DEVICE_TYPE_LABEL) as [
   DeviceType,
   string,
 ][];
 
-export function BookingForm({ defaultValues }: BookingFormProps) {
+export function BookingForm({
+  defaultValues,
+  discountEligible = false,
+  discountPercent = 10,
+  savedAddresses = [],
+}: BookingFormProps) {
   const router = useRouter();
-  const { dictionary } = useI18n();
+  const { dictionary, locale } = useI18n();
+  const isVi = locale === "vi";
+  const addressInputRef = useRef<HTMLInputElement | null>(null);
 
   const form = useForm<BookingInput>({
     resolver: zodResolver(bookingFormSchema),
@@ -72,9 +93,36 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
       serviceGroup: SERVICE_GROUPS[0],
       issueDescription: "",
       preferredTime: "",
+      useVerificationDiscount: false,
       ...defaultValues,
     },
   });
+
+  // Restore a previously saved draft once on mount.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as Partial<BookingInput>;
+      form.reset({ ...form.getValues(), ...draft });
+    } catch {
+      // ignore malformed drafts
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist the form to localStorage as the user types.
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      try {
+        window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(values));
+      } catch {
+        // storage may be unavailable (private mode / quota) — ignore
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   async function onSubmit(data: BookingInput) {
     try {
@@ -85,6 +133,8 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
         deviceType: data.deviceType,
         serviceGroup: data.serviceGroup,
         issueDescription: data.issueDescription.trim(),
+        useVerificationDiscount:
+          discountEligible && Boolean(data.useVerificationDiscount),
       };
 
       if (data.preferredTime && data.preferredTime.length > 0) {
@@ -100,7 +150,21 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
       if (res.status === 201) {
         const result = (await res.json()) as {
           appointment: { id: string; appointmentCode: string };
+          discountApplied?: boolean;
+          discountRequested?: boolean;
         };
+        try {
+          window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+        } catch {
+          // ignore
+        }
+        if (result.discountRequested && result.discountApplied === false) {
+          toast.warning(
+            locale === "vi"
+              ? "Ưu đãi chưa được áp dụng (đã dùng hoặc chưa đủ điều kiện). Đơn vẫn được tạo."
+              : "The discount was not applied (already used or not eligible). Your booking was still created.",
+          );
+        }
         router.push(
           `/booking/success?code=${encodeURIComponent(
             result.appointment.appointmentCode,
@@ -216,6 +280,41 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
               render={({ field }) => (
               <FormItem>
                   <FormLabel>{dictionary.booking.address}</FormLabel>
+                  {savedAddresses.length > 0 ? (
+                    <div className="flex flex-wrap gap-2 pb-1">
+                      {savedAddresses.map((saved) => {
+                        const active = field.value === saved.address;
+                        return (
+                          <button
+                            key={saved.id}
+                            type="button"
+                            onClick={() => field.onChange(saved.address)}
+                            className={`inline-flex max-w-full items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                              active
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-border text-muted-foreground hover:bg-accent"
+                            }`}
+                          >
+                            <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
+                            <span className="truncate">
+                              {saved.label || saved.address}
+                            </span>
+                          </button>
+                        );
+                      })}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          field.onChange("");
+                          window.setTimeout(() => addressInputRef.current?.focus(), 0);
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent"
+                      >
+                        <Plus className="size-3.5" aria-hidden="true" />
+                        {isVi ? "Địa chỉ khác" : "Other address"}
+                      </button>
+                    </div>
+                  ) : null}
                   <FormControl>
                     <Input
                       type="text"
@@ -224,6 +323,10 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                       className="h-11 text-base"
                       maxLength={INPUT_LIMITS.address}
                       {...field}
+                      ref={(el) => {
+                        field.ref(el);
+                        addressInputRef.current = el;
+                      }}
                       onChange={(event) =>
                         field.onChange(
                           limitText(event.target.value, INPUT_LIMITS.address),
@@ -353,6 +456,36 @@ export function BookingForm({ defaultValues }: BookingFormProps) {
                 </FormItem>
               )}
             />
+
+            {discountEligible ? (
+              <FormField
+                control={form.control}
+                name="useVerificationDiscount"
+                render={({ field }) => (
+                  <FormItem className="rounded-2xl border border-secondary/20 bg-secondary/5 p-4">
+                    <label className="flex cursor-pointer items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(field.value)}
+                        onChange={(event) => field.onChange(event.target.checked)}
+                        className="mt-1 size-4 accent-primary"
+                      />
+                      <span>
+                        <span className="block font-semibold text-on-surface">
+                          {locale === "vi"
+                            ? `Dùng ưu đãi xác thực -${discountPercent}%`
+                            : `Use verified discount -${discountPercent}%`}
+                        </span>
+                        <span className="mt-1 block text-sm text-muted-foreground">
+                          {dictionary.booking.useDiscountText ??
+                            "Ưu đãi chỉ áp dụng một lần cho tài khoản đã xác thực."}
+                        </span>
+                      </span>
+                    </label>
+                  </FormItem>
+                )}
+              />
+            ) : null}
 
             <div className="space-y-3 pt-2">
               <Button

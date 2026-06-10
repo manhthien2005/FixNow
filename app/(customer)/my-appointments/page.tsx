@@ -37,6 +37,8 @@ export default async function MyAppointmentsPage() {
           serviceGroup: true,
           status: true,
           createdAt: true,
+          discountPercent: true,
+          verificationDiscountApplied: true,
         },
       })
     : [];
@@ -48,6 +50,8 @@ export default async function MyAppointmentsPage() {
     serviceGroup: r.serviceGroup,
     status: r.status,
     createdAt: r.createdAt.toISOString(),
+    discountPercent: r.discountPercent,
+    verificationDiscountApplied: r.verificationDiscountApplied,
   }));
 
   return (

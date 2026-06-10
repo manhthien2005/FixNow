@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { Globe, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { SITE } from "@/lib/site";
 import { BrandLogo } from "@/components/layout/brand-logo";
 import { getDictionary } from "@/lib/i18n";
@@ -76,6 +76,17 @@ export async function Footer() {
                   className="inline-flex min-h-11 items-center transition-colors hover:text-secondary"
                 >
                   {SITE.email.label}
+                </a>
+              </li>
+              <li className="flex items-center gap-3">
+                <Globe className="size-4 shrink-0 text-secondary" />
+                <a
+                  href={SITE.facebook.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-11 items-center transition-colors hover:text-secondary"
+                >
+                  Facebook: {SITE.facebook.label}
                 </a>
               </li>
               <li className="flex items-center gap-3">

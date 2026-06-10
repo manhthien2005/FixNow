@@ -35,6 +35,9 @@ export async function GET(req: NextRequest) {
         status: true,
         createdAt: true,
         updatedAt: true,
+        discountPercent: true,
+        discountReason: true,
+        verificationDiscountApplied: true,
       },
     });
 

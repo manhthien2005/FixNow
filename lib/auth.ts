@@ -59,7 +59,7 @@ export const {
         return {
           id: user.id,
           name: user.fullName,
-          email: user.email ?? undefined,
+          email: user.email,
           role: user.role,
         };
       },

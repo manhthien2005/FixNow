@@ -22,14 +22,13 @@ const fullNameSchema = z
   .max(INPUT_LIMITS.name, "Họ tên tối đa 100 ký tự")
   .transform(normalizeSpaces);
 
-const optionalEmailSchema = z
+const emailSchema = z
   .string()
   .trim()
   .toLowerCase()
+  .min(1, "Email là bắt buộc")
   .max(INPUT_LIMITS.email, "Email tối đa 254 ký tự")
-  .email("Email không hợp lệ")
-  .optional()
-  .or(z.literal(""));
+  .email("Email không hợp lệ");
 
 const passwordSchema = z
   .string()
@@ -40,7 +39,7 @@ export const registerSchema = z
   .object({
     fullName: fullNameSchema,
     phone: phoneSchema,
-    email: optionalEmailSchema,
+    email: emailSchema,
     password: passwordSchema,
     confirmPassword: z.string().max(INPUT_LIMITS.password),
   })
@@ -66,7 +65,19 @@ export type LoginInput = z.infer<typeof loginSchema>;
 
 export const updateProfileSchema = z.object({
   fullName: fullNameSchema,
-  email: optionalEmailSchema,
+  email: emailSchema,
+});
+
+export const verifyEmailSchema = z.object({
+  email: emailSchema,
+  otp: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, "Mã OTP gồm 6 chữ số"),
+});
+
+export const resendVerificationSchema = z.object({
+  email: emailSchema,
 });
 
 export const changePasswordSchema = z
@@ -106,3 +117,5 @@ export const forgotPasswordSchema = z
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;

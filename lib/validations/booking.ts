@@ -64,6 +64,7 @@ export const bookingSchema = z.object({
     })
     .optional()
     .or(z.literal("")),
+  useVerificationDiscount: z.boolean().optional().default(false),
 });
 
 export const bookingApiSchema = bookingSchema;

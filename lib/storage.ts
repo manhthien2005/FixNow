@@ -14,6 +14,8 @@ const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export const STORAGE_BUCKET =
   process.env.SUPABASE_STORAGE_BUCKET ?? "fixnow-media";
+export const VERIFICATION_STORAGE_BUCKET =
+  process.env.SUPABASE_VERIFICATION_BUCKET ?? "fixnow-verifications";
 
 export const isStorageConfigured = Boolean(SUPABASE_URL && SERVICE_ROLE_KEY);
 
@@ -35,6 +37,22 @@ export function storagePublicUrl(path: string): string | null {
   if (!SUPABASE_URL) return null;
   const base = SUPABASE_URL.replace(/\/$/, "");
   return `${base}/storage/v1/object/public/${STORAGE_BUCKET}/${path}`;
+}
+
+/** Short-lived signed URL for private verification proof images. */
+export async function verificationProofSignedUrl(
+  path: string,
+  expiresInSeconds = 10 * 60,
+): Promise<string | null> {
+  const client = getStorageClient();
+  if (!client) return null;
+
+  const { data, error } = await client.storage
+    .from(VERIFICATION_STORAGE_BUCKET)
+    .createSignedUrl(path, expiresInSeconds);
+
+  if (error) return null;
+  return data.signedUrl;
 }
 
 /** Host of the Supabase project (for next.config remotePatterns), or null. */

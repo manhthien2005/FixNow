@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { localizePart } from "@/lib/catalog-i18n";
 import { resolvePartImage } from "@/lib/images";
 import { INPUT_LIMITS, limitText } from "@/lib/input-normalizers";
 import type { Part, PartType } from "@/db/schema";
@@ -50,26 +51,30 @@ interface PartsExplorerProps {
 }
 
 export function PartsExplorer({ parts }: PartsExplorerProps) {
-  const { dictionary } = useI18n();
+  const { dictionary, locale } = useI18n();
   const [query, setQuery] = useState("");
   const [selectedType, setSelectedType] = useState<FilterValue>("ALL");
+  const localizedParts = useMemo(
+    () => parts.map((part) => localizePart(part, locale)),
+    [locale, parts],
+  );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return parts.filter((part) => {
+    return localizedParts.filter((part) => {
       if (selectedType !== "ALL" && part.type !== selectedType) return false;
       if (q && !part.name.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [parts, query, selectedType]);
+  }, [localizedParts, query, selectedType]);
 
   const countByType = useMemo(() => {
-    const map = new Map<FilterValue, number>([["ALL", parts.length]]);
-    for (const part of parts) {
+    const map = new Map<FilterValue, number>([["ALL", localizedParts.length]]);
+    for (const part of localizedParts) {
       map.set(part.type, (map.get(part.type) ?? 0) + 1);
     }
     return map;
-  }, [parts]);
+  }, [localizedParts]);
 
   const filters: { value: FilterValue; label: string }[] = [
     { value: "ALL", label: dictionary.lists.all },

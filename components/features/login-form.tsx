@@ -63,7 +63,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
       }
 
       if (result?.ok) {
-        router.push(callbackUrl ?? "/");
+        router.push(callbackUrl ?? "/my-appointments");
         router.refresh();
       }
     } catch {

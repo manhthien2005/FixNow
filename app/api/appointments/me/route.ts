@@ -28,6 +28,9 @@ export async function GET() {
         status: true,
         createdAt: true,
         updatedAt: true,
+        discountPercent: true,
+        discountReason: true,
+        verificationDiscountApplied: true,
       },
     });
 

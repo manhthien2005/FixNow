@@ -58,6 +58,9 @@ export default async function BookingSuccessPage({
       preferredTime: true,
       status: true,
       createdAt: true,
+      discountPercent: true,
+      discountReason: true,
+      verificationDiscountApplied: true,
     },
   });
 
@@ -166,10 +169,18 @@ export default async function BookingSuccessPage({
           </dl>
         </CardContent>
         <CardFooter>
-          <Badge variant={APPOINTMENT_STATUS_VARIANT[appt.status]}>
-            {dictionary.labels.appointmentStatus[appt.status] ??
-              APPOINTMENT_STATUS_LABEL[appt.status]}
-          </Badge>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant={APPOINTMENT_STATUS_VARIANT[appt.status]}>
+              {dictionary.labels.appointmentStatus[appt.status] ??
+                APPOINTMENT_STATUS_LABEL[appt.status]}
+            </Badge>
+            {appt.verificationDiscountApplied ? (
+              <Badge variant="outline">
+                -{appt.discountPercent}% ·{" "}
+                {isVi ? "Ưu đãi xác thực" : "Verified discount"}
+              </Badge>
+            ) : null}
+          </div>
         </CardFooter>
       </Card>
 

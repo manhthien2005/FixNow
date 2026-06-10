@@ -84,3 +84,13 @@ Format:
 - **SSL**: must use `?sslmode=require&uselibpqcompat=true`. Recent `pg` versions treat plain `sslmode=require` as `verify-full` which rejects Supabase pooler certs.
 - **Trade-off / risk**: free tier pauses project after 7 days inactive (click "Restore" in dashboard to wake). 500MB DB / 2GB egress monthly — plenty for demo.
 - **Reversible?**: yes — schema is portable, change `DATABASE_URL` to migrate to Neon / local Postgres without code change.
+
+## 2026-06-10 — Chatbot hỗ trợ khách hàng (Gemini)
+
+### AI chatbot stack
+- **Quyết định**: thêm `ai` (Vercel AI SDK v5) + `@ai-sdk/google` + `@ai-sdk/react` cho chatbot CSKH; model mặc định `gemini-3.1-flash-lite` (Google AI Studio free tier ~30 RPM / 1.500 req/ngày / 1M TPM — cao nhất hiện tại), đổi được qua env `CHATBOT_MODEL`.
+- **Lý do**: streaming UI mượt qua `useChat` + `streamText` thay vì tự parse SSE (~200 dòng client code dễ lỗi); provider-agnostic (đổi model = 1 dòng); 3.1-flash-lite GA từ 7/5/2026, quota free cao nhất → tránh rate limit khi demo (Pro không còn free từ 4/2026).
+- **Grounding**: context-stuffing (catalog ~9 dịch vụ + ~21 linh kiện) qua `unstable_cache` dùng chung tags `service-prices` / `parts` với trang pricing/parts — KHÔNG cần RAG / vector DB. Admin sửa giá → revalidateTag đã có → bot tự cập nhật.
+- **Rate limit**: in-memory per-IP (10 req/phút) — đủ cho single-instance demo, không dùng Redis (theo stack rule). Trade-off: reset khi redeploy, không share giữa nhiều instance.
+- **Trade-off / rủi ro**: phụ thuộc quota free của Google; khi hết quota chatbot trả fallback kèm hotline (web không crash).
+- **Reversible?**: yes — đổi provider/model chỉ cần sửa env + 1 dòng code.

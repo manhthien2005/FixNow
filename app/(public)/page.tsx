@@ -26,6 +26,7 @@ import { ScrollReveal } from "@/components/features/home/scroll-reveal";
 import { Marquee } from "@/components/features/home/marquee";
 import { getDictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
+import { SITE, mapDirectionsHref, mapEmbedSrc } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Trang chủ",
@@ -45,16 +46,6 @@ const GRID_LINES = {
     "linear-gradient(rgb(var(--md-outline-variant) / 0.35) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--md-outline-variant) / 0.35) 1px, transparent 1px)",
   backgroundSize: "56px 56px",
 } as const;
-
-// FixNow service location — EDIT THESE 2 LINES with your real address.
-// FIXNOW_ADDRESS is shown to users; FIXNOW_MAP_QUERY drives the Google Maps embed
-// (a place name or full address both work, no API key required).
-const FIXNOW_ADDRESS =
-  "123 Đường Công Nghệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh";
-const FIXNOW_MAP_QUERY = "Quận 1, Hồ Chí Minh";
-const FIXNOW_MAP_SRC = `https://www.google.com/maps?q=${encodeURIComponent(
-  FIXNOW_MAP_QUERY,
-)}&z=14&output=embed`;
 
 type Accent = "secondary" | "primary" | "tertiary";
 
@@ -306,7 +297,7 @@ export default async function HomePage() {
           aria-hidden
           className="glass-panel-heavy absolute bottom-[16%] right-[18%] z-10 hidden animate-drift rounded-lg p-3 font-mono text-label-sm text-primary/70 [animation-delay:-5s] lg:block"
         >
-          <p>Hotline: 1900 8888</p>
+          <p>Hotline: {SITE.hotline.label}</p>
           <p>{isVi ? "Zalo hỗ trợ nhanh" : "Fast Zalo support"}</p>
         </div>
 
@@ -723,7 +714,7 @@ export default async function HomePage() {
                       {isVi ? "Điểm hỗ trợ" : "Support point"}
                     </p>
                     <p className="text-body-md text-on-surface-variant">
-                      {FIXNOW_ADDRESS}
+                      {SITE.address}
                     </p>
                   </div>
                 </div>
@@ -736,7 +727,7 @@ export default async function HomePage() {
                       Hotline
                     </p>
                     <p className="font-mono text-body-md text-on-surface-variant">
-                      1900 8888 · Zalo 24/7
+                      {SITE.hotline.label} · Zalo 24/7
                     </p>
                   </div>
                 </div>
@@ -759,9 +750,7 @@ export default async function HomePage() {
 
               <div className="flex flex-col gap-4 sm:flex-row">
                 <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-                    FIXNOW_MAP_QUERY,
-                  )}`}
+                  href={mapDirectionsHref()}
                   target="_blank"
                   rel="noreferrer"
                   className="btn-gradient glow-cta inline-flex items-center justify-center gap-2 rounded-lg px-8 py-4 font-mono text-label-md font-bold uppercase tracking-wider text-white"
@@ -780,8 +769,8 @@ export default async function HomePage() {
 
             <div className="glass-panel-heavy fade-in-up stagger-1 relative h-[360px] overflow-hidden rounded-2xl p-2 md:h-[400px]">
               <iframe
-                title={`${isVi ? "Bản đồ" : "Map"} FixNow - ${FIXNOW_ADDRESS}`}
-                src={FIXNOW_MAP_SRC}
+                title={`${isVi ? "Bản đồ" : "Map"} FixNow - ${SITE.address}`}
+                src={mapEmbedSrc()}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 allowFullScreen

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -69,19 +68,11 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
       });
 
       if (res.status === 201) {
-        toast.success(dictionary.auth.registerSuccess);
-        const result = await signIn("credentials", {
-          identifier: data.phone,
-          password: data.password,
-          redirect: false,
-        });
-        if (result?.ok) {
-          router.push(callbackUrl ?? "/");
-          router.refresh();
-        } else {
-          toast.message(dictionary.auth.registerSuccessLogin);
-          router.push("/login");
-        }
+        toast.success(dictionary.auth.registerSuccessLogin);
+        const params = new URLSearchParams();
+        if (callbackUrl) params.set("callbackUrl", callbackUrl);
+        const qs = params.toString();
+        router.push(qs ? `/login?${qs}` : "/login");
         return;
       }
 
@@ -205,7 +196,7 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{dictionary.auth.emailOptional}</FormLabel>
+                  <FormLabel>{dictionary.common.email}</FormLabel>
                   <FormControl>
                     <Input
                       type="email"

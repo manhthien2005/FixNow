@@ -21,6 +21,7 @@ async function main() {
       email: "admin@fixnow.local",
       passwordHash: await bcrypt.hash("admin123", 10),
       role: "ADMIN",
+      emailVerifiedAt: new Date(),
     })
     .onConflictDoNothing({ target: users.phone });
 
@@ -32,6 +33,7 @@ async function main() {
       email: "demo@example.com",
       passwordHash: await bcrypt.hash("demo1234", 10),
       role: "CUSTOMER",
+      emailVerifiedAt: new Date(),
     })
     .onConflictDoNothing({ target: users.phone });
 

@@ -55,6 +55,9 @@ export default async function AppointmentDetailPage({
       status: true,
       createdAt: true,
       updatedAt: true,
+      discountPercent: true,
+      discountReason: true,
+      verificationDiscountApplied: true,
     },
   });
 
