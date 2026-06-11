@@ -63,6 +63,7 @@ export const dictionaries = {
         { href: "/parts", label: "Linh kiện" },
         { href: "/contact", label: "Liên hệ" },
         { href: "/track", label: "Tra cứu" },
+        { href: "/policy", label: "Bảo hành" },
       ],
     },
     adminNav: {
@@ -344,6 +345,7 @@ export const dictionaries = {
         { href: "/parts", label: "Parts" },
         { href: "/contact", label: "Contact" },
         { href: "/track", label: "Track" },
+        { href: "/policy", label: "Warranty" },
       ],
     },
     adminNav: {

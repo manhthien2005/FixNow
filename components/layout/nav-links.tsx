@@ -31,7 +31,7 @@ export function NavLinks({ variant = "desktop", className }: NavLinksProps) {
             aria-current={active ? "page" : undefined}
             className={cn(
               variant === "desktop"
-                ? "relative text-sm font-medium transition-colors after:absolute after:-bottom-1.5 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-secondary after:transition-opacity"
+                ? "relative whitespace-nowrap text-sm font-medium transition-colors after:absolute after:-bottom-1.5 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-secondary after:transition-opacity"
                 : "flex min-h-11 items-center rounded-md px-3 text-base font-medium transition-colors hover:bg-surface-container-high",
               active
                 ? variant === "desktop"

@@ -55,7 +55,7 @@ export async function Navbar() {
 
         <NavLinks
           variant="desktop"
-          className="glass-panel hidden items-center gap-8 rounded-full px-8 py-3 lg:flex"
+          className="glass-panel hidden items-center gap-6 rounded-full px-6 py-3 xl:flex"
         />
 
         <div className="flex items-center gap-2">
@@ -64,7 +64,7 @@ export async function Navbar() {
 
           <Link
             href="/booking"
-            className="btn-gradient glow-cta hidden items-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white md:inline-flex"
+            className="btn-gradient glow-cta hidden items-center gap-2 whitespace-nowrap rounded-full px-6 py-3 text-sm font-bold text-white md:inline-flex"
           >
             <CalendarPlus className="size-4" />
             {dictionary.common.booking}
@@ -134,7 +134,7 @@ export async function Navbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-11 text-on-surface hover:bg-surface-container-high lg:hidden"
+                className="size-11 text-on-surface hover:bg-surface-container-high xl:hidden"
                 aria-label={dictionary.common.openMenu}
               >
                 <Menu className="size-5" />
